@@ -9,7 +9,7 @@ const easProjectId =
 const config: ExpoConfig = {
   name: 'APEX',
   slug: 'apex',
-  version: '1.0.6',
+  version: '1.0.5',
   orientation: 'default',
   icon: './assets/icon.png',
   scheme: 'apex',
