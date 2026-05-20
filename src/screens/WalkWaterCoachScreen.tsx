@@ -733,6 +733,21 @@ export default function WalkWaterCoachScreen() {
               <Text style={styles.coachToolBtnEmoji}>👤</Text>
               <Text style={styles.coachToolBtnText}>New User</Text>
             </Pressable>
+            <Pressable
+              style={[styles.coachToolBtn, { borderColor: 'rgba(251,191,36,0.4)', backgroundColor: 'rgba(251,191,36,0.06)' }]}
+              onPress={async () => {
+                const plan = await getWalkWaterPlan();
+                if (!plan) { Alert.alert('No plan', 'Complete the quiz first, then come back.'); return; }
+                const fakeStart = new Date();
+                fakeStart.setDate(fakeStart.getDate() - plan.challengeDays);
+                await saveWalkWaterPlan({ ...plan, startDate: fakeStart.toISOString().slice(0, 10) });
+                await setGroupWorkoutDone();
+                navigation.navigate('ChallengeComplete');
+              }}
+            >
+              <Text style={styles.coachToolBtnEmoji}>🧪</Text>
+              <Text style={styles.coachToolBtnText}>Test Purchase</Text>
+            </Pressable>
           </View>
           <Pressable
             style={[styles.coachToolBtn, { marginTop: 6, borderColor: 'rgba(16,185,129,0.4)', backgroundColor: 'rgba(16,185,129,0.06)' }]}
