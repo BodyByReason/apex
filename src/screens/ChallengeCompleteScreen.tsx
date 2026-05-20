@@ -434,20 +434,6 @@ export default function ChallengeCompleteScreen() {
             )}
           </View>
 
-          {(adminEnabled || __DEV__) && (
-            <Pressable
-              style={[styles.testPurchaseBtn, purchasing && styles.btnDisabled]}
-              onPress={handleTestPurchase}
-              disabled={purchasing}
-            >
-              {purchasing ? (
-                <ActivityIndicator color={WW.gold} />
-              ) : (
-                <Text style={styles.testPurchaseBtnText}>Test Purchase →</Text>
-              )}
-            </Pressable>
-          )}
-
           {/* CTA */}
           {purchaseError ? (
             <Text style={styles.errorText}>{purchaseError}</Text>
