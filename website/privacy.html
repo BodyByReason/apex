@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — APEX AI Coach</title>
+  <meta name="description" content="APEX AI Coach Privacy Policy — how we collect, use, and protect your data." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:      #050A14;
+      --card:       #0D1B2A;
+      --card-light: #111E2E;
+      --border:     #1A2E45;
+      --blue:       #0EA5E9;
+      --teal:       #06B6D4;
+      --text:       #F0F8FF;
+      --muted:      #6B8BA4;
+      --blue-soft:  rgba(14,165,233,0.10);
+      --blue-glow:  rgba(14,165,233,0.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--black);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(5,10,20,0.90);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 18px; font-weight: 800; color: var(--text);
+      text-decoration: none; letter-spacing: -0.3px;
+    }
+    .nav-logo span { color: var(--blue); }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a {
+      font-size: 14px; font-weight: 500; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--blue); color: #000 !important;
+      padding: 9px 20px; border-radius: 10px; font-weight: 700 !important;
+    }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrapper {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+    }
+    .page-header .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--blue-soft); border: 1px solid var(--blue-glow);
+      border-radius: 100px; padding: 6px 14px;
+      font-size: 13px; font-weight: 600; color: var(--blue);
+      margin-bottom: 20px;
+    }
+    .page-header h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 900; letter-spacing: -1px;
+      line-height: 1.15; margin-bottom: 12px;
+    }
+    .page-header .updated {
+      font-size: 14px; color: var(--muted);
+    }
+
+    /* ── CONTENT ── */
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      font-size: 20px; font-weight: 700; color: var(--blue);
+      margin-bottom: 16px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section p {
+      color: rgba(240,248,255,0.85);
+      margin-bottom: 14px;
+      font-size: 15px;
+    }
+    .section p:last-child { margin-bottom: 0; }
+
+    .section ul {
+      list-style: none; margin: 0 0 14px; padding: 0;
+    }
+    .section ul li {
+      font-size: 15px; color: rgba(240,248,255,0.85);
+      padding: 6px 0 6px 20px; position: relative;
+    }
+    .section ul li::before {
+      content: '→';
+      position: absolute; left: 0;
+      color: var(--blue); font-size: 13px;
+    }
+
+    .contact-box {
+      background: var(--blue-soft);
+      border: 1px solid var(--blue-glow);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 8px;
+    }
+    .contact-box a {
+      color: var(--blue); text-decoration: none; font-weight: 600;
+    }
+    .contact-box a:hover { text-decoration: underline; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--muted); text-decoration: none; margin: 0 10px; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 14px; }
+      .section { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">APEX <span>AI</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="support.html">Support</a>
+    <a href="index.html#waitlist" class="nav-cta">Join Waitlist</a>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="page-wrapper">
+
+  <div class="page-header">
+    <div class="badge">🔒 Privacy Policy</div>
+    <h1>Your Privacy,<br>Protected.</h1>
+    <p class="updated">Last updated: May 10, 2026</p>
+  </div>
+
+  <div class="section">
+    <h2>1. Introduction</h2>
+    <p>Welcome to APEX AI Coach ("APEX," "we," "our," or "us"). We operate the APEX AI Coach mobile application and the website at apexai.coach. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our services.</p>
+    <p>By using APEX, you agree to the practices described in this Privacy Policy. If you do not agree, please discontinue use of the app and website.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. Information We Collect</h2>
+    <p><strong style="color:var(--text)">Information you provide directly:</strong></p>
+    <ul>
+      <li>Name and email address (when signing up or joining the waitlist)</li>
+      <li>Quiz answers (daily step habits, water intake, primary goal, preferred walk time, challenge duration)</li>
+      <li>Gender (used only to personalize your walk &amp; water plan)</li>
+      <li>Messages sent to the AI Coach chat</li>
+      <li>Shipping address (collected when you purchase APEX shakes or supplements, used solely to fulfill your order)</li>
+      <li>Zip code (used to surface relevant on-the-go meal and restaurant options near you)</li>
+    </ul>
+    <p><strong style="color:var(--text)">Information collected automatically:</strong></p>
+    <ul>
+      <li>Device type, operating system version, and app version</li>
+      <li>Anonymous usage analytics (screens viewed, features used)</li>
+      <li>Crash reports and performance data</li>
+      <li>Push notification interaction events</li>
+    </ul>
+    <p><strong style="color:var(--text)">Health &amp; activity data (on-device only):</strong></p>
+    <ul>
+      <li>Step counts you manually log or that sync from your device's health app</li>
+      <li>Water intake you log within the app</li>
+      <li>This data is stored locally on your device and is never transmitted to our servers</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>3. How We Use Your Information</h2>
+    <ul>
+      <li>To generate your personalized Walk + Water Challenge plan</li>
+      <li>To power AI Coach responses via the Anthropic Claude API</li>
+      <li>To send you push notifications (challenge reminders, motivation, tips)</li>
+      <li>To send waitlist and launch announcement emails</li>
+      <li>To fulfill shake and supplement orders and arrange shipping</li>
+      <li>To show relevant on-the-go meal options based on your zip code</li>
+      <li>To improve app performance and fix bugs</li>
+      <li>To understand aggregate usage patterns and improve the product</li>
+    </ul>
+    <p>We do <strong style="color:var(--text)">not</strong> sell your personal information to third parties. We do not use your data for advertising profiling.</p>
+  </div>
+
+  <div class="section">
+    <h2>4. AI Coach & Anthropic</h2>
+    <p>The APEX AI Coach is powered by Anthropic's Claude AI model. When you send a message to the AI Coach, your message is transmitted to Anthropic's API to generate a response.</p>
+    <ul>
+      <li>Do not include sensitive personal or medical information in chat messages</li>
+      <li>Anthropic processes messages according to their own privacy policy at <a href="https://www.anthropic.com/privacy" style="color:var(--blue); text-decoration:none;">anthropic.com/privacy</a></li>
+      <li>AI responses are for general wellness information only and are not medical advice</li>
+      <li>Your conversation history is stored locally on your device only</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>5. Data Storage & Security</h2>
+    <p>Most Walk + Water Challenge data (your plan, step logs, water logs, quiz answers) is stored locally on your device using AsyncStorage and is never synced to our servers.</p>
+    <p>Account and waitlist data is stored on Supabase, a SOC 2 Type II compliant platform with encryption at rest and in transit. Shipping addresses collected for product orders are transmitted to our fulfillment system and stored securely for order processing purposes only.</p>
+    <p>We implement industry-standard security practices including HTTPS, encrypted connections, and access controls. No system is completely secure — please keep your device locked and up to date.</p>
+  </div>
+
+  <div class="section">
+    <h2>6. Data Retention</h2>
+    <ul>
+      <li>Local device data is retained until you delete the app</li>
+      <li>Waitlist emails are retained until you unsubscribe</li>
+      <li>Account data is retained for the life of your account plus 90 days after deletion</li>
+      <li>Analytics data is retained in anonymized, aggregated form indefinitely</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>7. Your Rights</h2>
+    <p>Depending on your location, you may have the following rights:</p>
+    <ul>
+      <li>Access the personal data we hold about you</li>
+      <li>Correct inaccurate personal data</li>
+      <li>Request deletion of your personal data</li>
+      <li>Opt out of marketing emails (unsubscribe link in every email)</li>
+      <li>Disable push notifications via your device's system settings</li>
+      <li>Request a copy of your data in a portable format</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at the address below.</p>
+  </div>
+
+  <div class="section">
+    <h2>8. Children's Privacy</h2>
+    <p>APEX AI Coach is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately and we will delete it.</p>
+  </div>
+
+  <div class="section">
+    <h2>9. Third-Party Services</h2>
+    <p>APEX uses the following third-party services, each with their own privacy policies:</p>
+    <ul>
+      <li><strong style="color:var(--text)">Supabase</strong> — backend infrastructure and authentication</li>
+      <li><strong style="color:var(--text)">Anthropic</strong> — AI Coach responses (Claude API)</li>
+      <li><strong style="color:var(--text)">Stripe</strong> — payment processing for shake and supplement purchases (Stripe handles all card data; we never store or access your full payment details)</li>
+      <li><strong style="color:var(--text)">RevenueCat</strong> — subscription and purchase history management</li>
+      <li><strong style="color:var(--text)">Expo / EAS</strong> — app build and push notification delivery</li>
+      <li><strong style="color:var(--text)">Apple / Google</strong> — app distribution and in-app purchases</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>10. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you of significant changes by updating the "Last updated" date at the top of this page and, where required by law, by sending you an email notification.</p>
+    <p>Continued use of APEX after changes take effect constitutes acceptance of the updated policy.</p>
+  </div>
+
+  <div class="section">
+    <h2>11. Contact Us</h2>
+    <p>If you have questions, concerns, or requests about your privacy, please reach out:</p>
+    <div class="contact-box">
+      <p style="margin-bottom:8px;font-weight:600;color:var(--text);">APEX AI Coach — Privacy</p>
+      <p style="margin-bottom:4px;">📧 <a href="mailto:coach@apexai.coach">coach@apexai.coach</a></p>
+      <p style="margin-bottom:0;color:var(--muted);font-size:14px;">We aim to respond within 2 business days.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p style="margin-bottom:12px;">
+    <a href="index.html">Home</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="support.html">Support</a>
+  </p>
+  <p>© 2026 APEX AI Coach. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

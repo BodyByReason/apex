@@ -1,0 +1,1 @@
+drop index if exists public.live_coaching_sessions_one_open_per_pair_idx;

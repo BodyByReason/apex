@@ -1,0 +1,92 @@
+{
+  "cli": {
+    "version": ">= 18.5.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "SENTRY_ALLOW_FAILURE": "true",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://nitruxotcddfkxyaosiy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_odhTWL6wjpx7TewfdLM5iw_St7SACJk",
+        "EXPO_PUBLIC_APP_BUNDLE_ID": "com.bodybyreason.apex",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "559c2858-00ff-4501-a270-1c4341868f17",
+        "EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY": "appl_eAobORRybJvlcAMGRwowcMvewHz",
+        "EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY": "goog_hRrwLOHyCQZBpgnyQifbjNcjIVY",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://045ad28a44e3bfdbc1a671b3393805ab@o4511198375247872.ingest.us.sentry.io/4511198380228608",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com",
+        "EXPO_PUBLIC_RAPIDAPI_KEY": "eb66d2f5b6msh8a13831bd50b742p15f158jsnb954941c45fa",
+        "EXPO_PUBLIC_YOUTUBE_API_KEY": "AIzaSyBUi4Nhd9N8-_QWJA_Q9aF-_dgJFiLUb04",
+        "EXPO_PUBLIC_FAL_KEY": "45db1133-1521-4153-9728-84a89c5ab878:876e338e591a82932297edf0a73571e4",
+        "EXPO_PUBLIC_COACH_ACCESS_PASSWORD": "Swoldier575!",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBRfWOcx3967OLl7KD7BQXblp0xqUVgXHU",
+        "GOOGLE_MAPS_IOS_API_KEY": "AIzaSyDgUcHN5Ye5AheGsNpzfO1BIyK3jwMLg3E"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "enterpriseProvisioning": "adhoc"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "channel": "production",
+      "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "SENTRY_ALLOW_FAILURE": "true",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://nitruxotcddfkxyaosiy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_odhTWL6wjpx7TewfdLM5iw_St7SACJk",
+        "EXPO_PUBLIC_APP_BUNDLE_ID": "com.bodybyreason.apex",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "559c2858-00ff-4501-a270-1c4341868f17",
+        "EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY": "appl_eAobORRybJvlcAMGRwowcMvewHz",
+        "EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY": "goog_hRrwLOHyCQZBpgnyQifbjNcjIVY",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://045ad28a44e3bfdbc1a671b3393805ab@o4511198375247872.ingest.us.sentry.io/4511198380228608",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com",
+        "EXPO_PUBLIC_RAPIDAPI_KEY": "eb66d2f5b6msh8a13831bd50b742p15f158jsnb954941c45fa",
+        "EXPO_PUBLIC_YOUTUBE_API_KEY": "AIzaSyBUi4Nhd9N8-_QWJA_Q9aF-_dgJFiLUb04",
+        "EXPO_PUBLIC_ZOOM_HOST_USER_ID": "joshua.saunders575@icloud.com",
+        "EXPO_PUBLIC_FAL_KEY": "45db1133-1521-4153-9728-84a89c5ab878:876e338e591a82932297edf0a73571e4",
+        "EXPO_PUBLIC_COACH_ACCESS_PASSWORD": "Swoldier575!",
+        "EXPO_PUBLIC_DEMO_REF_MARCUS_URL": "https://nitruxotcddfkxyaosiy.supabase.co/storage/v1/object/public/coach-assets/demo-refs/marcus-reference.png",
+        "EXPO_PUBLIC_DEMO_REF_SERENA_URL": "https://nitruxotcddfkxyaosiy.supabase.co/storage/v1/object/public/coach-assets/demo-refs/serena-reference.png",
+        "SENTRY_ORG": "bodybyreason",
+        "SENTRY_PROJECT": "apex",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBRfWOcx3967OLl7KD7BQXblp0xqUVgXHU",
+        "GOOGLE_MAPS_IOS_API_KEY": "AIzaSyDgUcHN5Ye5AheGsNpzfO1BIyK3jwMLg3E"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "enterpriseProvisioning": "universal"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}
