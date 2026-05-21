@@ -14,11 +14,13 @@ import { Linking } from 'react-native';
 import { supabase } from '@/lib/supabase';
 
 type AuthContextValue = {
+  clearIsReturningUser: () => void;
   clearPendingAppLink: () => void;
   completePasswordReset: (password: string) => Promise<string | null>;
   dismissPasswordReset: () => void;
   isEmailVerified: boolean;
   initializing: boolean;
+  isReturningUser: boolean;
   pendingAppLink: PendingAppLink | null;
   passwordResetMode: boolean;
   resendVerificationEmail: (targetEmail?: string) => Promise<string | null>;
@@ -91,6 +93,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [initializing, setInitializing] = useState(true);
   const [pendingAppLink, setPendingAppLink] = useState<PendingAppLink | null>(null);
   const [passwordResetMode, setPasswordResetMode] = useState(false);
+  const [isReturningUser, setIsReturningUser] = useState(false);
   const userEmail = session?.user?.email ?? null;
   const isEmailVerified = Boolean(session?.user?.email_confirmed_at ?? session?.user?.confirmed_at);
 
@@ -195,6 +198,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       pendingAppLink,
       isEmailVerified,
       passwordResetMode,
+      isReturningUser,
       clearPendingAppLink: () => setPendingAppLink(null),
       resendVerificationEmail: async (targetEmail?: string) => {
         const safeEmail = (targetEmail ?? userEmail ?? '').trim().toLowerCase();
@@ -244,6 +248,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       dismissPasswordReset: () => {
         setPasswordResetMode(false);
       },
+      clearIsReturningUser: () => {
+        setIsReturningUser(false);
+      },
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
@@ -255,12 +262,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
         // which can be delayed and leave the user stuck on the current screen.
         setSession(null);
         setPasswordResetMode(false);
+        setIsReturningUser(true);
         await AsyncStorage.multiRemove(SESSION_CACHE_KEYS).catch(() => null);
         return error?.message ?? null;
       },
       userEmail,
     }),
-    [initializing, isEmailVerified, passwordResetMode, pendingAppLink, session, userEmail],
+    [initializing, isEmailVerified, passwordResetMode, pendingAppLink, session, userEmail, isReturningUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

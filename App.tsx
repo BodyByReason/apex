@@ -62,7 +62,7 @@ function BootSplash() {
 }
 
 function RootNavigator() {
-  const { clearPendingAppLink, initializing, passwordResetMode, pendingAppLink, session } = useAuth();
+  const { clearIsReturningUser, clearPendingAppLink, initializing, isReturningUser, passwordResetMode, pendingAppLink, session } = useAuth();
   const { setTheme } = useApexTheme();
   const userId = session?.user?.id ?? null;
   const [profileBootstrapped, setProfileBootstrapped] = React.useState(false);
@@ -86,6 +86,16 @@ function RootNavigator() {
     navigationRef.navigate('CoachAccess');
     clearPendingAppLink();
   }, [clearPendingAppLink, pendingAppLink]);
+
+  // Clear the returning user flag after it's been used to determine
+  // whether to show the quiz or login screen
+  useEffect(() => {
+    if (!isReturningUser || session) return;
+    const timer = setTimeout(() => {
+      clearIsReturningUser();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isReturningUser, session, clearIsReturningUser]);
 
   useEffect(() => {
     let mounted = true;
@@ -253,9 +263,9 @@ function RootNavigator() {
 
   if (walkWaterMode) {
     // No session — user signed out or hasn't registered yet.
-    // forceQuiz skips the plan check so the navigator always opens
-    // at the quiz/auth screen instead of routing back to the tabs.
-    return <WalkWaterNavigator forceQuiz />;
+    // Brand new users (isReturningUser=false): forceQuiz=false, shows quiz flow
+    // Returning users who signed out (isReturningUser=true): forceQuiz=true, skips to login
+    return <WalkWaterNavigator forceQuiz={isReturningUser} />;
   }
 
   return <AuthNavigator />;
