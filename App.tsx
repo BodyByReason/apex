@@ -67,7 +67,7 @@ function RootNavigator() {
   const userId = session?.user?.id ?? null;
   const [profileBootstrapped, setProfileBootstrapped] = React.useState(false);
   const [profileReady, setProfileReady] = React.useState(false);
-  const [walkWaterMode, setWalkWaterMode] = React.useState(false);
+  const [walkWaterMode, setWalkWaterMode] = React.useState(true);
   const [walkWaterModeReady, setWalkWaterModeReady] = React.useState(false);
   const [apexAccessAllowed, setApexAccessAllowed] = React.useState(false);
   const [apexAccessReady, setApexAccessReady] = React.useState(false);
@@ -168,7 +168,7 @@ function RootNavigator() {
     return () => {
       mounted = false;
     };
-  }, [clearPendingAppLink, pendingAppLink, session?.user?.email, userId, walkWaterMode]);
+  }, [clearPendingAppLink, pendingAppLink, session?.user?.email, userId]);
 
   // Listen for new coach messages and fire local push notifications
   useCoachMessageListener(userId);
