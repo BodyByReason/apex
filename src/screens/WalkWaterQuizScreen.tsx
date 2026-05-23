@@ -705,7 +705,18 @@ export default function WalkWaterQuizScreen() {
                 }
               </Pressable>
 
-              <Pressable onPress={() => setAuthMode(authMode === 'signup' ? 'login' : 'signup')} style={styles.switchAuthBtn}>
+              <Pressable
+                onPress={() => {
+                  if (authMode === 'login' && !dailySteps) {
+                    // Quiz answers missing (signin-mode path skips the quiz).
+                    // Restart from the beginning so they get a plan before signing up.
+                    (navigation as any).replace('WalkWaterQuiz');
+                  } else {
+                    setAuthMode(authMode === 'signup' ? 'login' : 'signup');
+                  }
+                }}
+                style={styles.switchAuthBtn}
+              >
                 <Text style={styles.switchAuthText}>
                   {authMode === 'signup' ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
                 </Text>

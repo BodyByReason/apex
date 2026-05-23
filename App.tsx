@@ -68,12 +68,15 @@ function RootNavigator() {
   const [profileBootstrapped, setProfileBootstrapped] = React.useState(false);
   const [profileReady, setProfileReady] = React.useState(false);
   const [walkWaterMode, setWalkWaterMode] = React.useState(false);
+  const [walkWaterModeReady, setWalkWaterModeReady] = React.useState(false);
   const [apexAccessAllowed, setApexAccessAllowed] = React.useState(false);
   const [apexAccessReady, setApexAccessReady] = React.useState(false);
 
   // Hydrate walk-water mode flag on mount and listen for changes from admin panel
   useEffect(() => {
-    isWalkWaterModeEnabled().then(setWalkWaterMode).catch(() => null);
+    isWalkWaterModeEnabled()
+      .then((enabled) => { setWalkWaterMode(enabled); setWalkWaterModeReady(true); })
+      .catch(() => { setWalkWaterModeReady(true); });
     const sub = DeviceEventEmitter.addListener(WALK_WATER_MODE_EVENT, (enabled: boolean) => {
       setWalkWaterMode(enabled);
     });
@@ -240,7 +243,7 @@ function RootNavigator() {
   //   maybeShowPaywall(session.user.id).catch(() => null);
   // }, [session?.user.id]);
 
-  if (initializing || !apexAccessReady || (session && apexAccessAllowed && !profileBootstrapped)) {
+  if (initializing || !apexAccessReady || !walkWaterModeReady || (session && apexAccessAllowed && !profileBootstrapped)) {
     return <BootSplash />;
   }
 
