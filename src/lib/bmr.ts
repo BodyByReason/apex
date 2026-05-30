@@ -71,10 +71,24 @@ export function lossDeficitForRate(rate: WeeklyLossRate = '1.5'): number {
   return 750;
 }
 
+// Grams per lb of reference weight for each goal.
+// lose/recomp/performance use goal weight; build uses current weight.
+const MACRO_MULTIPLIERS: Record<
+  UserProfile['goal'],
+  { protein: number; carbs: number; fat: number }
+> = {
+  lose:        { protein: 1.0, carbs: 0.75, fat: 0.35 },
+  recomp:      { protein: 1.0, carbs: 1.0,  fat: 0.35 },
+  performance: { protein: 1.0, carbs: 1.2,  fat: 0.35 },
+  build:       { protein: 1.0, carbs: 1.5,  fat: 0.4  },
+};
+
 /**
- * Derive macro targets from raw profile stats.
- * Uses a 750 kcal/day deficit for fat loss, +300 for building,
- * and maintenance for recomp / performance.
+ * Derive macro targets from goal body weight.
+ * All three macros are set from the reference weight, then calories
+ * are derived from the macros — not the other way around.
+ * This guarantees protein ≥ carbs > fat (in grams) for the lose goal
+ * and keeps targets predictable at any calorie level.
  */
 export function deriveMacroTargets(
   profile: Pick<
@@ -82,30 +96,15 @@ export function deriveMacroTargets(
     'weightLbs' | 'heightFt' | 'age' | 'gender' | 'experience' | 'goal' | 'goalWeightLbs' | 'weeklyLossRate'
   >,
 ): MacroTargets {
-  const bmr = calcBMR(
-    profile.weightLbs,
-    profile.heightFt,
-    profile.age,
-    profile.gender,
-  );
-  const tdee = Math.round(bmr * activityFactor(profile.experience));
-
-  const rawDeficit = lossDeficitForRate(profile.weeklyLossRate);
-  const cappedDeficit = Math.min(rawDeficit, Math.round(tdee * 0.3));
-  const adjustment =
-    profile.goal === 'lose'
-      ? -cappedDeficit
-      : profile.goal === 'build'
-        ? 300
-        : 0; // recomp / performance → maintenance
-
-  const dailyCalorieTarget = Math.max(safeCalorieFloor(profile.gender), tdee + adjustment);
   const refWeight = parseFloat(profile.goalWeightLbs || profile.weightLbs) || 185;
-  const dailyProtein = Math.round(refWeight * 0.9);
-  const dailyFat = Math.round((dailyCalorieTarget * 0.28) / 9);
-  const dailyCarbs = Math.max(
-    0,
-    Math.round((dailyCalorieTarget - dailyProtein * 4 - dailyFat * 9) / 4),
+  const m = MACRO_MULTIPLIERS[profile.goal] ?? MACRO_MULTIPLIERS.recomp;
+
+  const dailyProtein = Math.round(refWeight * m.protein);
+  const dailyCarbs   = Math.round(refWeight * m.carbs);
+  const dailyFat     = Math.round(refWeight * m.fat);
+  const dailyCalorieTarget = Math.max(
+    safeCalorieFloor(profile.gender),
+    dailyProtein * 4 + dailyCarbs * 4 + dailyFat * 9,
   );
 
   return { dailyCalorieTarget, dailyProtein, dailyCarbs, dailyFat };
