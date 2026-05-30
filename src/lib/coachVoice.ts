@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ImageSourcePropType } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 
 import { env } from '@/lib/env';
 
 export const COACH_VOICE_STORAGE_KEY = 'apex.coach.voiceId';
+export const COACH_VOICE_CHANGED_EVENT = 'apex.coach.voiceChanged';
 
 export type CoachVoiceOption = {
   avatar: ImageSourcePropType;
@@ -82,6 +84,7 @@ export async function getSelectedCoachVoice(): Promise<CoachVoiceOption> {
 
 export async function setSelectedCoachVoiceId(voiceId: string) {
   await AsyncStorage.setItem(COACH_VOICE_STORAGE_KEY, voiceId);
+  DeviceEventEmitter.emit(COACH_VOICE_CHANGED_EVENT, voiceId);
 }
 
 export function getCoachVoiceOptionById(voiceId?: string | null): CoachVoiceOption {

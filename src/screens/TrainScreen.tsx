@@ -646,6 +646,7 @@ function ExerciseItem({
   onFormReview,
   onLog,
   onToggle,
+  onVideoPress,
   accentColor,
   accentSoft,
 }: {
@@ -658,6 +659,7 @@ function ExerciseItem({
   onFormReview?: (exerciseName: string) => void;
   onLog: () => void;
   onToggle: () => void;
+  onVideoPress?: (exercise: WorkoutProgramExercise) => void;
   accentColor?: string;
   accentSoft?: string;
 }) {
@@ -677,6 +679,17 @@ function ExerciseItem({
           >
             <Text style={[styles.exLogText, accentColor ? { color: accentColor } : null]}>LOG</Text>
           </Pressable>
+          {ex.youtubeId ? (
+            <Pressable
+              style={styles.exDemoBtn}
+              onPress={(e) => {
+                e.stopPropagation();
+                onVideoPress?.(ex);
+              }}
+            >
+              <Text style={styles.exDemoText}>View Video</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             style={styles.exFormReviewBtn}
             onPress={(e) => {
@@ -4061,6 +4074,10 @@ COACHING BEHAVIOR — follow these rules at all times:
                     loggedSummary={getExerciseLoggedSummary(exercise)}
                     onAIDemo={(exerciseName) => handleGenerateWorkoutDemo(exerciseName).catch(() => null)}
                     onFormReview={(exerciseName) => navigation.navigate('FormReview', { exerciseName, hasLiveCoach: true })}
+                    onVideoPress={(exerciseItem) => {
+                      setVideoId(exerciseItem.youtubeId);
+                      setVideoTitle(exerciseItem.name);
+                    }}
                     onToggle={() => toggleDone(exercise.num)}
                     onLog={() => openLog(exercise.name)}
                     accentColor={accent}

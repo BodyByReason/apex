@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { Audio } from 'expo-av';
 import '@/lib/livekitGlobals';
 import { useConversation } from '@elevenlabs/react-native';
 
@@ -72,6 +73,11 @@ function resetAudioRoute(inCallManager: InCallManagerModule | null) {
   } catch {
     // noop
   }
+}
+
+async function ensureMicrophonePermission() {
+  const { granted } = await Audio.requestPermissionsAsync().catch(() => ({ granted: false }));
+  return granted;
 }
 
 export function useWorkoutElevenLabsCoach({ onToolCall }: UseWorkoutElevenLabsCoachArgs) {
@@ -188,6 +194,11 @@ export function useWorkoutElevenLabsCoach({ onToolCall }: UseWorkoutElevenLabsCo
     setAssistantTranscript('');
 
     try {
+      const hasMicrophonePermission = await ensureMicrophonePermission();
+      if (!hasMicrophonePermission) {
+        throw new Error('Microphone permission is required so Serena can hear you.');
+      }
+
       // Fetch a LiveKit conversation token from our edge function — never expose the API key client-side.
       // We use conversationToken (WebRTC/LiveKit transport) instead of signedUrl (WebSocket transport)
       // because the WebSocket path requires browser AudioContext which does not exist in React Native's

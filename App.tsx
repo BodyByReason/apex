@@ -16,7 +16,7 @@ import { GamificationProvider } from '@/contexts/GamificationContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider, useTheme as useApexTheme } from '@/contexts/ThemeContext';
 import '@/lib/i18n';
-import { applyApexAccessState, claimApexAccessLink, ensureApexProfileFromWalkWater, getMyApexAccess } from '@/lib/apexAccess';
+import { applyApexAccessState, claimApexAccessLink, ensureApexProfileFromWalkWater, getMyApexAccess, isApexAccessPreviewEnabled } from '@/lib/apexAccess';
 import {
   getNotifPrefs,
   maybeRescheduleCoachNotifications,
@@ -62,23 +62,40 @@ function BootSplash() {
 }
 
 function RootNavigator() {
-  const { clearIsReturningUser, clearPendingAppLink, initializing, isReturningUser, passwordResetMode, pendingAppLink, session } = useAuth();
+  const { clearPendingAppLink, initializing, passwordResetMode, pendingAppLink, session } = useAuth();
   const { setTheme } = useApexTheme();
   const userId = session?.user?.id ?? null;
   const [profileBootstrapped, setProfileBootstrapped] = React.useState(false);
   const [profileReady, setProfileReady] = React.useState(false);
   const [walkWaterMode, setWalkWaterMode] = React.useState(true);
   const [walkWaterModeReady, setWalkWaterModeReady] = React.useState(false);
+  const [guestApexSetupComplete, setGuestApexSetupComplete] = React.useState(false);
   const [apexAccessAllowed, setApexAccessAllowed] = React.useState(false);
   const [apexAccessReady, setApexAccessReady] = React.useState(false);
 
   // Hydrate walk-water mode flag on mount and listen for changes from admin panel
   useEffect(() => {
-    isWalkWaterModeEnabled()
-      .then((enabled) => { setWalkWaterMode(enabled); setWalkWaterModeReady(true); })
+    Promise.all([
+      isWalkWaterModeEnabled(),
+      isApexAccessPreviewEnabled().catch(() => false),
+    ])
+      .then(([enabled, previewEnabled]) => {
+        setWalkWaterMode(enabled && !previewEnabled);
+        setGuestApexSetupComplete(false);
+        setWalkWaterModeReady(true);
+      })
       .catch(() => { setWalkWaterModeReady(true); });
     const sub = DeviceEventEmitter.addListener(WALK_WATER_MODE_EVENT, (enabled: boolean) => {
       setWalkWaterMode(enabled);
+      setGuestApexSetupComplete(false);
+
+      if (!enabled) {
+        setApexAccessAllowed(true);
+        setApexAccessReady(true);
+      } else {
+        setApexAccessAllowed(false);
+        setApexAccessReady(true);
+      }
     });
     return () => sub.remove();
   }, []);
@@ -89,16 +106,6 @@ function RootNavigator() {
     navigationRef.navigate('CoachAccess');
     clearPendingAppLink();
   }, [clearPendingAppLink, pendingAppLink]);
-
-  // Clear the returning user flag after it's been used to determine
-  // whether to show the quiz or login screen
-  useEffect(() => {
-    if (!isReturningUser || session) return;
-    const timer = setTimeout(() => {
-      clearIsReturningUser();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [isReturningUser, session, clearIsReturningUser]);
 
   useEffect(() => {
     let mounted = true;
@@ -258,17 +265,18 @@ function RootNavigator() {
   if (session) {
     return (
       <>
-        {apexAccessAllowed ? <MainNavigator /> : <WalkWaterNavigator />}
+        {apexAccessAllowed ? <MainNavigator /> : <WalkWaterNavigator key="ww-authenticated" />}
         <AchievementCelebration />
       </>
     );
   }
 
   if (walkWaterMode) {
-    // No session — user signed out or hasn't registered yet.
-    // Brand new users (isReturningUser=false): forceQuiz=false, shows quiz flow
-    // Returning users who signed out (isReturningUser=true): forceQuiz=true, skips to login
-    return <WalkWaterNavigator forceQuiz={isReturningUser} />;
+    return <WalkWaterNavigator key="ww-guest" startAtQuiz />;
+  }
+
+  if (!guestApexSetupComplete) {
+    return <GoalSetupScreen onComplete={() => setGuestApexSetupComplete(true)} />;
   }
 
   return <AuthNavigator />;

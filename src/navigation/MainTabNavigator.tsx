@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 import { useTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Image, Text, View } from 'react-native';
+import { DeviceEventEmitter, Image, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -38,7 +38,7 @@ import CoachScreen from '@/screens/CoachScreen';
 import PlansScreen from '@/screens/PlansScreen';
 import { apexColors } from '@/theme/colors';
 import { typography } from '@/theme';
-import { getSelectedCoachVoice, type CoachVoiceOption } from '@/lib/coachVoice';
+import { COACH_VOICE_CHANGED_EVENT, getSelectedCoachVoice, type CoachVoiceOption } from '@/lib/coachVoice';
 
 type MainTabParamList = {
   Dashboard: undefined;
@@ -67,6 +67,10 @@ export default function MainTabNavigator() {
 
   useEffect(() => {
     getSelectedCoachVoice().then(setActiveCoachVoice).catch(() => null);
+    const sub = DeviceEventEmitter.addListener(COACH_VOICE_CHANGED_EVENT, () => {
+      getSelectedCoachVoice().then(setActiveCoachVoice).catch(() => null);
+    });
+    return () => sub.remove();
   }, []);
 
   return (
