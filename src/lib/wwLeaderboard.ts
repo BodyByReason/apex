@@ -58,7 +58,10 @@ export function mostRecentTuesdayAZ(): string {
 function isActive3DayWindow(): boolean {
   const azNow = new Date(Date.now() - 7 * 60 * 60 * 1000);
   const azDow = azNow.getUTCDay();
-  return azDow >= 2 && azDow <= 4;
+  if (azDow < 2 || azDow > 4) return false;
+  // Thursday closes at 4:00 pm AZ (16:00 AZ = 23:00 UTC)
+  if (azDow === 4 && azNow.getUTCHours() >= 23) return false;
+  return true;
 }
 
 function compositeScore(steps: number, waterGlasses: number, streak: number): number {
@@ -180,12 +183,21 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
  */
 export async function fetch3DayLeaderboard(): Promise<LeaderboardEntry[]> {
   const { data: { session } } = await supabase.auth.getSession();
-  const week = mostRecentTuesdayAZ();
+  const tuesday = mostRecentTuesdayAZ();
 
+  // Derive Thursday (tuesday + 2 days) for the date range.
+  const tuesdayMs = new Date(`${tuesday}T12:00:00Z`).getTime();
+  const thursday = new Date(tuesdayMs + 2 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  // Query by stat_date range instead of challenge_week so rows logged before
+  // challenge_week was stamped (e.g. first day, OTA timing) are still counted.
   const { data, error } = await supabase
     .from('ww_daily_stats')
     .select('user_id, steps, water_glasses, streak, display_name, updated_at')
-    .eq('challenge_week', week)
+    .gte('stat_date', tuesday)
+    .lte('stat_date', thursday)
     .order('updated_at', { ascending: false });
 
   if (error) {
