@@ -896,7 +896,7 @@ function AssistantCoachModal({
   notes: string;
   sessionSchedule: Array<{ date: string; time: string; type: SessionType }>;
   recentWorkouts: Array<{ workout_type: string; workout_date: string; calories_burned: number; duration_minutes: number }>;
-  recentMeals: Array<{ food_name: string; calories: number; protein_g: number; logged_at: string }>;
+  recentMeals: Array<{ meal_name: string; calories: number; protein_grams: number; consumed_at: string }>;
   onApplyNotes: (nextNotes: string) => void;
   onApplySchedule: (nextSchedule: Array<{ date: string; time: string; type: SessionType }>) => void;
 }) {
@@ -923,7 +923,7 @@ function AssistantCoachModal({
       const mealBlock = recentMeals.length
         ? recentMeals
           .slice(0, 6)
-          .map((m) => `- ${m.food_name}: ${m.calories} cal, ${m.protein_g}g protein (${new Date(m.logged_at).toLocaleDateString()})`)
+          .map((m) => `- ${m.meal_name}: ${m.calories} cal, ${m.protein_grams}g protein (${new Date(m.consumed_at).toLocaleDateString()})`)
           .join('\n')
         : '- No recent meals logged yet';
       const scheduleBlock = sessionSchedule.length
@@ -1222,7 +1222,7 @@ function ClientDetailModal({
   const [nextSession, setNextSession] = useState(client?.nextSession ?? '');
   const [sessionSchedule, setSessionSchedule] = useState(client?.sessionSchedule ?? []);
   const [recentWorkouts, setRecentWorkouts] = useState<Array<{ workout_type: string; workout_date: string; calories_burned: number; duration_minutes: number }>>([]);
-  const [recentMeals, setRecentMeals] = useState<Array<{ food_name: string; calories: number; protein_g: number; logged_at: string }>>([]);
+  const [recentMeals, setRecentMeals] = useState<Array<{ meal_name: string; calories: number; protein_grams: number; consumed_at: string }>>([]);
 
   React.useEffect(() => {
     if (client && visible) {
@@ -1239,8 +1239,8 @@ function ClientDetailModal({
     supabase.from('workouts').select('workout_type,workout_date,calories_burned,duration_minutes')
       .eq('user_id', client.id).order('workout_date', { ascending: false }).limit(7)
       .then(({ data }) => setRecentWorkouts((data as any) ?? []), () => null);
-    supabase.from('nutrition_entries').select('food_name,calories,protein_g,logged_at')
-      .eq('user_id', client.id).order('logged_at', { ascending: false }).limit(10)
+    supabase.from('nutrition_entries').select('meal_name,calories,protein_grams,consumed_at')
+      .eq('user_id', client.id).order('consumed_at', { ascending: false }).limit(10)
       .then(({ data }) => setRecentMeals((data as any) ?? []), () => null);
   }, [client?.id]);
 
@@ -1702,8 +1702,8 @@ function ClientDetailModal({
                         {recentMeals.map((m, i) => (
                           <View key={i} style={styles.recentRow}>
                             <View style={{ flex: 1 }}>
-                              <Text style={styles.recentTitle}>{m.food_name}</Text>
-                              <Text style={styles.recentMeta}>{m.calories} cal · {m.protein_g}g protein</Text>
+                              <Text style={styles.recentTitle}>{m.meal_name}</Text>
+                              <Text style={styles.recentMeta}>{m.calories} cal · {m.protein_grams}g protein</Text>
                             </View>
                           </View>
                         ))}

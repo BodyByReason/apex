@@ -38,6 +38,8 @@ type Tab = 'diary' | 'macros' | 'plans' | 'water';
 
 // Hydration persistence key is date-scoped so it resets each morning
 const HYDRATION_KEY = (date: string) => `apex.hydration.${date}`;
+// Nutrition entries cache — date-scoped so yesterday's data never bleeds through
+const ENTRIES_CACHE_KEY = (date: string) => `apex.entries.${date}`;
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 // Meal plan & grocery list cache
@@ -495,10 +497,12 @@ function MealDetailModal({
   accent,
   entry,
   onClose,
+  onDelete,
 }: {
   accent: string;
   entry: NutritionixFoodResult | null;
   onClose: () => void;
+  onDelete: (id: string) => void;
 }) {
   return (
     <Modal visible={Boolean(entry)} transparent animationType="slide" onRequestClose={onClose}>
@@ -526,6 +530,23 @@ function MealDetailModal({
               <Pressable style={[styles.btnPrimary, { backgroundColor: accent, marginTop: 8 }]} onPress={onClose}>
                 <Text style={styles.btnPrimaryText}>Done</Text>
               </Pressable>
+              {entry.id ? (
+                <Pressable
+                  style={[styles.btnGhost, { borderColor: '#E53E3E', marginTop: 10 }]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Delete entry?',
+                      `Remove "${entry.name}" from today's diary?`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', style: 'destructive', onPress: () => onDelete(entry.id!) },
+                      ],
+                    );
+                  }}
+                >
+                  <Text style={[styles.btnGhostText, { color: '#E53E3E' }]}>Delete Entry</Text>
+                </Pressable>
+              ) : null}
             </>
           ) : null}
         </View>
@@ -711,6 +732,11 @@ export default function FuelScreen() {
         .then((raw) => setWaterOz(raw ? Number(raw) : 0))
         .catch(() => null);
 
+      // Seed entries from cache so stats show instantly after OTA reload (DB fetch overwrites shortly after)
+      AsyncStorage.getItem(ENTRIES_CACHE_KEY(todayStr()))
+        .then((raw) => { if (raw) setEntries(JSON.parse(raw)); })
+        .catch(() => null);
+
       // Restore saved meal plan
       AsyncStorage.getItem(MEAL_PLAN_KEY)
         .then((raw) => { if (raw) setMealPlan(JSON.parse(raw) as MealPlanDay[]); })
@@ -804,39 +830,36 @@ export default function FuelScreen() {
     fetchRecipes().catch(() => null);
   }, []);
 
-  React.useEffect(() => {
-    if (!session?.user?.id) {
-      setEntries([]);
-      return;
-    }
-  }, [session?.user?.id]);
-
   const refreshEntries = React.useCallback(async () => {
     if (!session?.user?.id) {
-      setEntries([]);
+      // No session yet — don't wipe cache-seeded entries; DB fetch will run once session restores
       return;
     }
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const { data } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('nutrition_entries')
-      .select('meal_name, calories, protein_grams, carbs_grams, fat_grams')
+      .select('id, meal_name, calories, protein_grams, carbs_grams, fat_grams')
       .eq('user_id', session.user.id)
       .gte('consumed_at', startOfDay.toISOString())
       .order('created_at', { ascending: true });
 
-    setEntries(
-      (data ?? []).map((item) => ({
-        calories: Number(item.calories ?? 0),
-        carbs: Number(item.carbs_grams ?? 0),
-        fat: Number(item.fat_grams ?? 0),
-        name: item.meal_name,
-        protein: Number(item.protein_grams ?? 0),
-        servingText: 'Logged today',
-      })),
-    );
+    if (fetchError) return; // keep existing entries (or cache) rather than wiping on error
+
+    const mapped = (data ?? []).map((item) => ({
+      id: item.id,
+      calories: Number(item.calories ?? 0),
+      carbs: Number(item.carbs_grams ?? 0),
+      fat: Number(item.fat_grams ?? 0),
+      name: item.meal_name,
+      protein: Number(item.protein_grams ?? 0),
+      servingText: 'Logged today',
+    }));
+
+    setEntries(mapped);
+    AsyncStorage.setItem(ENTRIES_CACHE_KEY(todayStr()), JSON.stringify(mapped)).catch(() => null);
   }, [session?.user?.id]);
 
   React.useEffect(() => {
@@ -891,17 +914,21 @@ export default function FuelScreen() {
       return;
     }
 
-    setEntries((current) => [
-      ...current,
-      {
-        calories: entry.calories,
-        carbs: entry.carbs,
-        fat: entry.fat,
-        name: entry.mealName,
-        protein: entry.protein,
-        servingText: 'Logged today',
-      },
-    ]);
+    // Re-fetch from DB so the entry gets its server-assigned id and survives any subsequent reload
+    await refreshEntries().catch(() => {
+      // Fallback: show optimistically until next successful fetch
+      setEntries((current) => [
+        ...current,
+        {
+          calories: entry.calories,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          name: entry.mealName,
+          protein: entry.protein,
+          servingText: 'Logged today',
+        },
+      ]);
+    });
 
     if (entry.source === 'camera') {
       const currentCount = Number((await AsyncStorage.getItem(FOOD_CAMERA_SCAN_STORAGE_KEY)) ?? 0);
@@ -956,6 +983,22 @@ export default function FuelScreen() {
         { text: 'Done', style: 'cancel' },
       ],
     );
+  };
+
+  const deleteEntry = async (id: string) => {
+    const { error } = await supabase
+      .from('nutrition_entries')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      Alert.alert('Delete failed', error.message);
+      return;
+    }
+
+    setEntries((current) => current.filter((e) => e.id !== id));
+    setSelectedEntry(null);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
   const applyFoodToManualEditor = (food: ScannedFood, servings = 1) => {
@@ -2906,6 +2949,7 @@ Reply with ONLY valid JSON — no extra text, no markdown:
         accent={accent}
         entry={selectedEntry}
         onClose={() => setSelectedEntry(null)}
+        onDelete={deleteEntry}
       />
       <Modal visible={servingsModalVisible} transparent animationType="fade" onRequestClose={() => setServingsModalVisible(false)}>
         <View style={styles.modalOverlayCenter}>
