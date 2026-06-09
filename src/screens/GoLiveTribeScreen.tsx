@@ -66,6 +66,10 @@ export default function GoLiveTribeScreen() {
   const [starting, setStarting] = useState(false);
   const [egressId, setEgressId] = useState<string | undefined>();
   const [videoUrl, setVideoUrl] = useState<string | undefined>();
+  // Ref mirrors egressId so handleEndLive and handleUnexpectedDisconnect always
+  // read the latest value even if the useCallback closure captured a stale state.
+  const egressIdRef = useRef<string | undefined>();
+  const liveSessionRef = useRef<TribeLiveSession | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
 
@@ -87,6 +91,11 @@ export default function GoLiveTribeScreen() {
     if (!title.trim()) { Alert.alert('Title required', 'Add a title for your live session.'); return; }
     setStarting(true);
     try {
+      // Release the expo-camera preview's hold on the camera BEFORE LiveKit
+      // acquires it to publish. Setting `starting` unmounts <CameraView/> (see
+      // the setup render); this beat lets iOS tear that AVCaptureSession down so
+      // LiveKitRoom can claim the camera without a native contention crash.
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await AudioSession.startAudioSession();
       const sess = await createLiveSession({
         coachId: session.user.id,
@@ -101,11 +110,13 @@ export default function GoLiveTribeScreen() {
         canPublish: true,
       });
       setLiveSession(sess);
+      liveSessionRef.current = sess;
       setLivekitToken(token);
       setLivekitUrl(url);
       setPhase('live');
       startEgress({ roomName: sess.livekitRoomName, sessionId: sess.id })
         .then(({ egressId: eid, videoUrl: vurl }) => {
+          egressIdRef.current = eid;
           setEgressId(eid);
           setVideoUrl(vurl);
         })
@@ -124,12 +135,16 @@ export default function GoLiveTribeScreen() {
         text: 'End Live',
         style: 'destructive',
         onPress: async () => {
-          if (liveSession) {
-            if (egressId) await stopEgress(egressId).catch(() => null);
-            await endLiveSession(liveSession.id).catch(() => null);
+          // Use refs so we always get the latest values even if the closure captured
+          // stale state (e.g. egressId wasn't set yet when this callback was created).
+          const activeSession = liveSessionRef.current ?? liveSession;
+          const activeEgressId = egressIdRef.current ?? egressId;
+          if (activeSession) {
+            if (activeEgressId) await stopEgress(activeEgressId).catch(() => null);
+            await endLiveSession(activeSession.id).catch(() => null);
             await addTextPostToFeed({
               author: profile?.displayName ?? 'Coach',
-              body: `🔴 Just wrapped a live session: "${liveSession.title}" — thanks to everyone who joined!`,
+              body: `🔴 Just wrapped a live session: "${activeSession.title}" — thanks to everyone who joined!`,
               badgeType: 'tip',
               videoUrl,
             }).catch(() => null);
@@ -142,12 +157,15 @@ export default function GoLiveTribeScreen() {
   }, [liveSession, navigation, egressId, videoUrl, profile]);
 
   const handleUnexpectedDisconnect = useCallback(async () => {
-    if (!liveSession) return;
-    if (egressId) await stopEgress(egressId).catch(() => null);
-    await endLiveSession(liveSession.id).catch(() => null);
+    // Use refs so we always get the latest values regardless of stale closures.
+    const activeSession = liveSessionRef.current ?? liveSession;
+    const activeEgressId = egressIdRef.current ?? egressId;
+    if (!activeSession) return;
+    if (activeEgressId) await stopEgress(activeEgressId).catch(() => null);
+    await endLiveSession(activeSession.id).catch(() => null);
     await addTextPostToFeed({
       author: profile?.displayName ?? 'Coach',
-      body: `🔴 Just wrapped a live session: "${liveSession.title}" — thanks to everyone who joined!`,
+      body: `🔴 Just wrapped a live session: "${activeSession.title}" — thanks to everyone who joined!`,
       badgeType: 'tip',
       videoUrl,
     }).catch(() => null);
@@ -169,14 +187,18 @@ export default function GoLiveTribeScreen() {
         </View>
 
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          {cameraPermission?.granted ? (
+          {cameraPermission?.granted && !starting ? (
             <CameraView style={styles.cameraPreview} facing="front" />
           ) : (
             <View style={styles.cameraPlaceholder}>
-              <Text style={styles.cameraPlaceholderText}>Camera permission required</Text>
-              <Pressable onPress={requestCameraPermission} style={styles.permBtn}>
-                <Text style={styles.permBtnText}>Grant Access</Text>
-              </Pressable>
+              <Text style={styles.cameraPlaceholderText}>
+                {starting ? 'Starting your live…' : 'Camera permission required'}
+              </Text>
+              {!starting && !cameraPermission?.granted && (
+                <Pressable onPress={requestCameraPermission} style={styles.permBtn}>
+                  <Text style={styles.permBtnText}>Grant Access</Text>
+                </Pressable>
+              )}
             </View>
           )}
 

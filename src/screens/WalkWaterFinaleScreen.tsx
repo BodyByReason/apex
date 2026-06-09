@@ -187,6 +187,12 @@ export default function WalkWaterFinaleScreen() {
   const firstName = displayName.split(' ')[0];
   const { steps: healthSteps } = useHealth();
 
+  // Derived phase — declared up here (not lower in the body) because the
+  // auto-navigate effect below depends on `activePhase`. `const` is not hoisted,
+  // so referencing it before this line throws a TDZ ReferenceError on render.
+  const devPhase = route.params?.devPhase ?? null;
+  const activePhase: EventPhase = devPhase ?? phase;
+
   // Compute event time from plan start date
   useEffect(() => {
     (async () => {
@@ -339,9 +345,6 @@ export default function WalkWaterFinaleScreen() {
     }
   }, [recordingUrl, openReplayModal]);
 
-  const devPhase = route.params?.devPhase ?? null;
-  const activePhase: EventPhase = devPhase ?? phase;
-
   const canComplete = alreadyDone || (activePhase === 'post' ? recordingWatchedMs >= COMPLETE_DELAY_MS : elapsed >= COMPLETE_DELAY_MS);
 
   const [leaderboard, setLeaderboard] = useState<Array<{ name: string; steps: number; water: number; streak: number }>>([]);
@@ -387,11 +390,19 @@ export default function WalkWaterFinaleScreen() {
             <Text style={styles.subtitle}>Join below, train with the group, and comment live.</Text>
           </>
         ) : activePhase === 'post' ? (
-          <>
-            <Text style={styles.eyebrow}>DAY 3 · MISSED IT?</Text>
-            <Text style={styles.title}>Watch the{'\n'}Recording 📹</Text>
-            <Text style={styles.subtitle}>Complete the workout below to unlock your reward.</Text>
-          </>
+          planChallengeDays > 3 ? (
+            <>
+              <Text style={styles.eyebrow}>🏋️ GROUP WORKOUT FINALE</Text>
+              <Text style={styles.title}>Your Finale{'\n'}Workout 🏆</Text>
+              <Text style={styles.subtitle}>Press play and train with the group — complete it to finish strong.</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.eyebrow}>DAY 3 · MISSED IT?</Text>
+              <Text style={styles.title}>Watch the{'\n'}Recording 📹</Text>
+              <Text style={styles.subtitle}>Complete the workout below to unlock your reward.</Text>
+            </>
+          )
         ) : (
           <>
             <Text style={styles.eyebrow}>DAY 3 · FINAL DAY</Text>
@@ -446,8 +457,12 @@ export default function WalkWaterFinaleScreen() {
 
         {activePhase === 'post' && (
           <>
-            <Text style={styles.eventEyebrow}>MISSED IT?</Text>
-            <Text style={styles.eventTime}>Watch the recording and complete the workout</Text>
+            <Text style={styles.eventEyebrow}>{planChallengeDays > 3 ? 'GROUP WORKOUT FINALE' : 'MISSED IT?'}</Text>
+            <Text style={styles.eventTime}>
+              {planChallengeDays > 3
+                ? 'Press play to start your group workout'
+                : 'Watch the recording and complete the workout'}
+            </Text>
             <Pressable style={styles.recordingBtn} onPress={handleWatchRecording}>
               <Text style={styles.recordingBtnText}>{loadingRecording ? 'Loading recording…' : '▶  Watch Recording'}</Text>
             </Pressable>
