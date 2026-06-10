@@ -7,7 +7,8 @@ export type RealtimeWorkoutToolName =
   | 'move_to_next_exercise'
   | 'set_rest_timer'
   | 'schedule_reminder'
-  | 'apply_plan_adjustment';
+  | 'apply_plan_adjustment'
+  | 'update_weight';
 
 export type RealtimeWorkoutToolCall = {
   arguments: Record<string, unknown>;
@@ -175,13 +176,28 @@ export const WORKOUT_REALTIME_TOOLS = [
     },
     type: 'function',
   },
+  {
+    description:
+      'Update the working weight for the current exercise when the athlete tells you the weight they are using or want to use. Use this when the athlete says things like "I\'m using 135 pounds", "change the weight to 185", or "drop it to 95 lbs".',
+    name: 'update_weight',
+    parameters: {
+      additionalProperties: false,
+      properties: {
+        exerciseName: { type: 'string' },
+        weightLbs: { type: 'string' },
+      },
+      required: ['weightLbs'],
+      type: 'object',
+    },
+    type: 'function',
+  },
 ] as const;
 
 export function buildWorkoutRealtimeInstructions(input: {
   coachVoice: CoachVoiceOption | null;
   workoutContext: string;
 }) {
-  const coachName = input.coachVoice?.label ?? 'Marcus';
+  const coachName = input.coachVoice?.label ?? 'Coach Josh';
   const personaBlock = input.coachVoice?.persona ? `\n\nVOICE PERSONA\n${input.coachVoice.persona}` : '';
 
   return `You are ${coachName}, the live APEX workout coach inside a strength-training session.

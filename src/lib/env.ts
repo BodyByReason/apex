@@ -8,6 +8,8 @@ export const env = {
   elevenLabsVoiceId: read(process.env.EXPO_PUBLIC_ELEVENLABS_VOICE_ID),
   elevenLabsAgentMarcusId: read(process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_MARCUS_ID),
   elevenLabsAgentSerenaId: read(process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_SERENA_ID),
+  // Single Coach Josh conversational agent — set to the Coach Josh agent id.
+  elevenLabsAgentJoshId: read(process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_JOSH_ID),
   elevenLabsAgentEnabled: readBool(process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_ENABLED),
   nutritionixAppId: read(process.env.EXPO_PUBLIC_NUTRITIONIX_APP_ID),
   nutritionixAppKey: read(process.env.EXPO_PUBLIC_NUTRITIONIX_APP_KEY),

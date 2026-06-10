@@ -186,10 +186,10 @@ export function useSerenaLiveSession() {
     setSetNumber(1);
 
     try {
-      const agentId = env.elevenLabsAgentSerenaId;
+      const agentId = env.elevenLabsAgentJoshId || env.elevenLabsAgentSerenaId;
       if (!agentId) {
         throw new Error(
-          'Serena agent ID not configured. Set EXPO_PUBLIC_ELEVENLABS_AGENT_SERENA_ID in .env.local',
+          'Coach Josh agent ID not configured. Set EXPO_PUBLIC_ELEVENLABS_AGENT_JOSH_ID in .env.local',
         );
       }
 

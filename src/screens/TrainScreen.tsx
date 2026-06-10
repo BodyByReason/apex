@@ -104,13 +104,9 @@ const WARMUP_STEPS = [
 ] as const;
 
 const COACH_VISUALS: Record<string, { image: ImageSourcePropType; role: string }> = {
-  Marcus: {
-    image: require('../../assets/marcus-coach.png'),
-    role: 'Strength coach',
-  },
-  Serena: {
-    image: require('../../assets/serena-coach.png'),
-    role: 'Performance coach',
+  'Coach Josh': {
+    image: require('../../assets/josh-coach.png'),
+    role: 'Head coach',
   },
 };
 
@@ -735,15 +731,13 @@ function buildCoachFallbackDemo(
   exerciseSets: string,
   coach: CoachVoiceOption | null,
 ): WorkoutDemoResult {
-  const coachName = coach?.label ?? 'Marcus';
+  const coachName = coach?.label ?? 'Coach Josh';
   const roleLabel = coach?.role ?? 'Coach';
 
   return {
     headline: `${exerciseName} with ${coachName}`,
     demoScript:
-      coachName === 'Serena'
-        ? `Serena walks you through ${exerciseName}. Set up clean, control the lowering phase, and stay smooth through every rep. Finish strong, reset your breath, and own the next set.`
-        : `Marcus coaches your ${exerciseName}. Lock in your setup, brace hard, and drive every rep with intent. Control the weight down, finish clean, and stay disciplined through the set.`,
+      `${coachName} walks you through ${exerciseName}. Keep it simple — set up clean, control the weight on the way down, and stay smooth through every rep. Finish strong, reset your breath, and we go again.`,
     cameraPlan: [
       `Front setup angle on ${exerciseName}`,
       'Side angle showing range of motion and bar path',
@@ -915,9 +909,7 @@ function buildQuickWorkout(
                     : 'Full-body express session',
     exercises,
     coachNote:
-      coach?.label === 'Serena'
-        ? `Short session, full focus. ${equipment === 'none' ? 'No equipment needed — just move.' : equipment === 'home' ? 'Home setup, no guesswork.' : 'You have the full gym, so use it.'} Keep your rest tight and make these ${minutes} minutes count.`
-        : `No wasted time here. ${equipment === 'none' ? 'Bodyweight only, still effective.' : equipment === 'home' ? 'Home setup, serious intent.' : 'Use the equipment around you and get after it.'} Stack a real win in ${minutes} minutes.`,
+      `No wasted time here. ${equipment === 'none' ? 'Bodyweight only, still effective.' : equipment === 'home' ? 'Home setup, serious intent.' : 'Use the equipment around you and get after it.'} Let's stack a real win in ${minutes} minutes. We got this.`,
     quickWorkoutMeta: {
       equipment: QUICK_WORKOUT_EQUIPMENT_OPTIONS.find((option) => option.id === equipment)?.label ?? 'Gym',
       focusLabel: QUICK_WORKOUT_FOCUS_OPTIONS.find((option) => option.id === focus)?.label ?? 'Full Body',
@@ -2345,7 +2337,7 @@ export default function TrainScreen() {
       (currentExercise?.name === exerciseName ? currentExercise.sets : undefined) ??
       exerciseSets ??
       'Use programmed sets and reps';
-    const coachLabel = selectedCoachVoice?.label ?? 'Marcus';
+    const coachLabel = selectedCoachVoice?.label ?? 'Coach Josh';
     const demoCacheKey = getWorkoutDemoCacheKey(coachLabel, resolvedExerciseName);
     const fallbackDemo = buildCoachFallbackDemo(
       resolvedExerciseName,
@@ -2463,7 +2455,7 @@ export default function TrainScreen() {
       (currentExercise?.name === exerciseName ? currentExercise.sets : undefined) ??
       exerciseSets ??
       'Use programmed sets and reps';
-    const coachLabel = selectedCoachVoice?.label ?? 'Marcus';
+    const coachLabel = selectedCoachVoice?.label ?? 'Coach Josh';
     const approvedVideo = await getApprovedDemoAsset(coachLabel, resolvedExerciseName, 'video').catch(() => null);
     if (approvedVideo?.videoUrl) {
       setVideoUrl(approvedVideo.videoUrl);
@@ -2512,7 +2504,7 @@ export default function TrainScreen() {
         body: {
           exerciseName: workoutDemoExercise,
           exerciseSets: workoutDemoExerciseSets,
-          coachPersona: selectedCoachVoice?.label ?? 'Marcus',
+          coachPersona: selectedCoachVoice?.label ?? 'Coach Josh',
           coachPersonaPrompt: selectedCoachVoice?.persona ?? '',
           videoRequestId: workoutDemo.videoRequestId,
         },
@@ -2532,7 +2524,7 @@ export default function TrainScreen() {
         });
         const nextVideoUrl = (data as { video_url?: string | null }).video_url ?? null;
         if (nextVideoUrl) {
-          const coachLabel = selectedCoachVoice?.label ?? 'Marcus';
+          const coachLabel = selectedCoachVoice?.label ?? 'Coach Josh';
           const cacheKey = getWorkoutDemoCacheKey(coachLabel, workoutDemoExercise);
           AsyncStorage.setItem(
             cacheKey,
@@ -2789,6 +2781,15 @@ COACHING BEHAVIOR — follow these rules at all times:
         await saveAIWorkout(updatedWorkout).catch(() => null);
         setAiWorkout(updatedWorkout);
         return { message: 'Training plan note updated.', ok: true };
+      }
+      case 'update_weight': {
+        const weightLbs = typeof call.arguments.weightLbs === 'string' ? call.arguments.weightLbs.trim() : '';
+        const exerciseName = typeof call.arguments.exerciseName === 'string' ? call.arguments.exerciseName : undefined;
+        if (!weightLbs) {
+          return { message: 'No weight was provided.', ok: false };
+        }
+        const message = await persistStructuredVoiceWorkoutLog({ exerciseName, weightLbs });
+        return { message: message ?? `Weight updated to ${weightLbs} lbs.`, ok: true };
       }
       default:
         return { message: 'Unknown workout tool.', ok: false };
@@ -3950,13 +3951,13 @@ COACHING BEHAVIOR — follow these rules at all times:
                     accessibilityLabel={`Open ${selectedCoachVoice?.label ?? 'coach'} photo`}
                   >
                     <Image
-                      source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Marcus']?.image ?? COACH_VISUALS.Marcus.image}
+                      source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Coach Josh']?.image ?? COACH_VISUALS['Coach Josh'].image}
                       style={styles.coachPortraitImage}
                     />
                   </Pressable>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.coachPortraitEyebrow, { color: accent }]}>
-                      {selectedCoachVoice?.label ?? 'Marcus'} · {COACH_VISUALS[selectedCoachVoice?.label ?? 'Marcus']?.role ?? 'Coach'}
+                      {selectedCoachVoice?.label ?? 'Coach Josh'} · {COACH_VISUALS[selectedCoachVoice?.label ?? 'Coach Josh']?.role ?? 'Coach'}
                     </Text>
                     <Text style={styles.coachPortraitTitle}>
                       {todayProgram.badge !== 'rest' && completedWarmupSteps.length < WARMUP_STEPS.length
@@ -4484,7 +4485,7 @@ COACHING BEHAVIOR — follow these rules at all times:
           <View style={styles.coachImagePreviewCard}>
             <Text style={styles.coachImagePreviewTitle}>{selectedCoachVoice?.label ?? 'Coach'}</Text>
             <Image
-              source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Marcus']?.image ?? COACH_VISUALS.Marcus.image}
+              source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Coach Josh']?.image ?? COACH_VISUALS['Coach Josh'].image}
               style={styles.coachImagePreviewImage}
             />
             <Pressable style={styles.coachImagePreviewCloseBtn} onPress={() => setCoachImagePreviewVisible(false)}>
@@ -4528,7 +4529,7 @@ COACHING BEHAVIOR — follow these rules at all times:
                   ]}
                 >
                   <Image
-                    source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Marcus']?.image ?? COACH_VISUALS.Marcus.image}
+                    source={COACH_VISUALS[selectedCoachVoice?.label ?? 'Coach Josh']?.image ?? COACH_VISUALS['Coach Josh'].image}
                     style={styles.demoVisualAvatar}
                   />
                   <View style={{ flex: 1 }}>
@@ -4621,8 +4622,9 @@ COACHING BEHAVIOR — follow these rules at all times:
       {showActiveWorkout && (
         <ActiveWorkoutPanel
           assistantTranscript={realtimeCoach.assistantTranscript}
-          coachAvatar={COACH_VISUALS[selectedCoachVoice?.label ?? 'Marcus']?.image}
+          coachAvatar={COACH_VISUALS[selectedCoachVoice?.label ?? 'Coach Josh']?.image}
           coachLabel={selectedCoachVoice?.label ?? 'Coach'}
+          connectionError={realtimeCoach.connectionDetail}
           currentExerciseName={exercises[selectedExerciseIndex]?.name ?? selectedExercise ?? todayProgram.name}
           currentExercisePrescription={exercises[selectedExerciseIndex]?.sets ?? ''}
           doneSets={doneSets}

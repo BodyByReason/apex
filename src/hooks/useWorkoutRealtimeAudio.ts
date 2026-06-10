@@ -135,13 +135,15 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
   }, [liveAudioTransportReady, preferredTransport, proxyStatus, speechToSpeechEnabled, supportsNativeLiveMode, webrtcSupported]);
 
   const connectWorkoutCoach = useCallback(async (input: ConnectWorkoutCoachInput) => {
-    const coachLabel = input.coachVoice?.label ?? 'Marcus';
+    const coachLabel = input.coachVoice?.label ?? 'Coach Josh';
 
     // ── ElevenLabs Agents path (primary when enabled) ──────────────────────
     if (elevenLabsAgentEnabled && supportsNativeLiveMode) {
-      const agentId = coachLabel === 'Serena'
-        ? env.elevenLabsAgentSerenaId
-        : env.elevenLabsAgentMarcusId;
+      // Single Coach Josh agent. Falls back to the legacy Marcus/Serena agent
+      // ids so the live coach keeps working until JOSH_ID is set in env/EAS.
+      const agentId = env.elevenLabsAgentJoshId
+        || env.elevenLabsAgentMarcusId
+        || env.elevenLabsAgentSerenaId;
 
       if (agentId) {
         const instructions = buildWorkoutRealtimeInstructions({
@@ -149,7 +151,7 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
           workoutContext: input.workoutContext,
         });
 
-        return elevenLabsCoach.connect({
+        const elevenLabsConnected = await elevenLabsCoach.connect({
           agentId,
           instructions,
           kickoffPrompt: input.kickoffPrompt ?? null,
@@ -160,9 +162,17 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
             todayWorkout: input.todayWorkout,
             userName: input.userName ?? null,
           },
-          voiceId: input.coachVoice?.id ?? null,
+          // Voice is configured per-agent in the ElevenLabs dashboard — do not
+          // override here. The coach id values are OpenAI TTS IDs and are not
+          // valid ElevenLabs voice IDs; passing them causes a 404 on session
+          // initiation and an immediate 1006 WebSocket close.
+          voiceId: null,
           workoutContext: input.workoutContext,
         });
+
+        if (elevenLabsConnected) {
+          return true;
+        }
       }
     }
 
@@ -230,7 +240,10 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
   // Destructure stable function refs — avoids depending on the whole
   // elevenLabsCoach object (which was new every render before the ref fix).
   const elevenLabsDisconnect = elevenLabsCoach.disconnect;
+  const elevenLabsLastDebug = elevenLabsCoach.lastDebug;
   const elevenLabsSendContextualUpdate = elevenLabsCoach.sendContextualUpdate;
+  const elevenLabsStatus = elevenLabsCoach.status;
+  const elevenLabsStatusMessage = elevenLabsCoach.statusMessage;
 
   const sendContextualUpdate = useCallback((text: string) => {
     if (elevenLabsAgentEnabled && supportsNativeLiveMode) {
@@ -254,18 +267,41 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
     ? elevenLabsCoach.lastError
     : webrtcLastError ?? realtimeLastError;
 
+  const shouldUseFallbackState =
+    elevenLabsAgentEnabled &&
+    supportsNativeLiveMode &&
+    !elevenLabsCoach.connected &&
+    !elevenLabsCoach.connecting &&
+    Boolean(elevenLabsCoach.lastError);
+
+  const activeConnectionDetail = elevenLabsAgentEnabled && supportsNativeLiveMode
+    ? [
+        // Diagnostics FIRST. The error stack below can be 5+ screens of minified
+        // bundle offsets; if the trail is last, nobody ever scrolls to the build
+        // stamp / native probes / SDK-status lines that actually diagnose the
+        // failure. Surfacing them at the top makes a single screenshot conclusive.
+        elevenLabsLastDebug,
+        elevenLabsStatus ? `status: ${elevenLabsStatus}` : null,
+        elevenLabsStatusMessage ? `message: ${elevenLabsStatusMessage}` : null,
+        shouldUseFallbackState && realtimeCoach.connected ? 'Fallback coach connection is active.' : null,
+        '── error ──',
+        elevenLabsCoach.lastError,
+      ].filter(Boolean).join('\n')
+    : activeLastError;
+
   // Expose connection + speaking state for UI indicators (e.g. Active Workout Panel).
   const activeIsSpeaking = elevenLabsAgentEnabled && supportsNativeLiveMode
     ? elevenLabsCoach.isSpeaking
     : false;
 
   const activeIsConnected = elevenLabsAgentEnabled && supportsNativeLiveMode
-    ? elevenLabsCoach.connected
+    ? elevenLabsCoach.connected || (shouldUseFallbackState && realtimeCoach.connected)
     : liveAudioTransportReady
       ? webrtcCoach.supported
       : false;
 
-  const elevenLabsIsConnecting = elevenLabsCoach.connecting;
+  const elevenLabsIsConnecting =
+    elevenLabsCoach.connecting || (shouldUseFallbackState && realtimeCoach.connecting);
 
   return useMemo(() => ({
     ...realtimeCoach,
@@ -286,17 +322,22 @@ export function useWorkoutRealtimeAudio({ onToolCall }: UseWorkoutRealtimeAudioA
     transportSummary,
     liveDebugSummary,
     disconnect,
+    connectionDetail: activeConnectionDetail,
     lastError: activeLastError,
     webrtcSupported,
   }), [
     activeAssistantTranscript,
     activeIsConnected,
     activeIsSpeaking,
+    activeConnectionDetail,
     activeLastError,
     connectWorkoutCoach,
     disconnect,
     elevenLabsAgentEnabled,
     elevenLabsIsConnecting,
+    elevenLabsLastDebug,
+    elevenLabsStatus,
+    elevenLabsStatusMessage,
     liveAudioTransportReady,
     liveDebugSummary,
     preferredAndroidVadMode,

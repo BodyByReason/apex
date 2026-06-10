@@ -267,7 +267,7 @@ export default function CoachScreen() {
   const [freeMessagesUsed, setFreeMessagesUsed] = useState(0);
   const [activeCoachVoice, setActiveCoachVoice] = useState<CoachVoiceOption | null>(null);
   const flatRef = useRef<FlatList<Message>>(null);
-  const activeCoachLabel = activeCoachVoice?.label ?? 'Marcus';
+  const activeCoachLabel = activeCoachVoice?.label ?? 'Coach Josh';
   const activeCoachAvatar = activeCoachVoice?.avatar;
 
   // Reload selected coach voice whenever this screen is focused

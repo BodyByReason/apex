@@ -141,8 +141,7 @@ type GoalPreviewResult = {
 };
 
 const COACH_PROFILE_IMAGES: Record<string, unknown> = {
-  Marcus: require('../../assets/marcus-coach.png'),
-  Serena: require('../../assets/serena-coach.png'),
+  'Coach Josh': require('../../assets/josh-coach.png'),
 };
 
 

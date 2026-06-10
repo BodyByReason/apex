@@ -2828,7 +2828,6 @@ export default function CoachModeScreen() {
       key: 'gifts',
       label: `Gifts${pendingGifts.length + pendingShakeOrders.length ? ` (${pendingGifts.length + pendingShakeOrders.length})` : ''}`,
     },
-    { key: 'studio', label: 'Demo Studio' },
     { key: 'settings', label: '⚙️ Settings' },
   ];
 

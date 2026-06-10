@@ -32,7 +32,7 @@ function buildCoachSummary(
   goalWeightLbs?: number | null,
   proteinGoal = 150,
   calGoal = 2000,
-  voiceName = 'Marcus',
+  voiceName = 'Coach Josh',
 ): string {
   const hour = new Date().getHours();
   const proteinLeft = Math.max(proteinGoal - protein, 0);
@@ -90,7 +90,8 @@ function buildCoachSummary(
   }
 
   const summary = lines.join(' ');
-  if (voiceName === 'Serena') {
+  // Coach Josh's warm tone softens the punchy base copy (same treatment Serena used).
+  if (voiceName === 'Coach Josh' || voiceName === 'Serena') {
     return summary
       .replace('load up.', 'you can close that gap with one strong meal.')
       .replace('keep going.', 'keep rolling.')
@@ -1217,7 +1218,7 @@ export default function DashboardScreen() {
       totals.protein, totals.caloriesConsumed, totals.caloriesBurned,
       totalStepCount, '', latestWeightLbs, weeklyWeightAvg,
       profile?.goalWeightLbs ? parseFloat(profile.goalWeightLbs) : null,
-      macros.dailyProtein, macros.dailyCalorieTarget, activeCoachVoice?.label ?? 'Marcus',
+      macros.dailyProtein, macros.dailyCalorieTarget, activeCoachVoice?.label ?? 'Coach Josh',
     );
     setCoachVoicePlaying(true);
     await speakWithElevenLabs(tip, elevenKey).catch(() => null);
@@ -2205,7 +2206,7 @@ ${JSON.stringify(payload, null, 0)}`;
                       hero.eyebrow.split(' · ')[1]?.split(' ')[0] ?? "today's workout",
                       latestWeightLbs, weeklyWeightAvg,
                       profile?.goalWeightLbs ? parseFloat(profile.goalWeightLbs) : null,
-                      macros.dailyProtein, macros.dailyCalorieTarget, activeCoachVoice?.label ?? 'Marcus',
+                      macros.dailyProtein, macros.dailyCalorieTarget, activeCoachVoice?.label ?? 'Coach Josh',
                     )}
               </Text>
             </View>
