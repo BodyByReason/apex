@@ -16,7 +16,7 @@ import { GamificationProvider } from '@/contexts/GamificationContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider, useTheme as useApexTheme } from '@/contexts/ThemeContext';
 import '@/lib/i18n';
-import { applyApexAccessState, claimApexAccessLink, ensureApexProfileFromWalkWater, getMyApexAccess, isApexAccessPreviewEnabled } from '@/lib/apexAccess';
+import { applyApexAccessState, claimApexAccessLink, ensureApexProfileFromWalkWater, getMyApexAccess, isApexAccessPreviewEnabled, isApexQuizDone, markApexQuizDone } from '@/lib/apexAccess';
 import {
   getNotifPrefs,
   maybeRescheduleCoachNotifications,
@@ -72,6 +72,11 @@ function RootNavigator() {
   const [guestApexSetupComplete, setGuestApexSetupComplete] = React.useState(false);
   const [apexAccessAllowed, setApexAccessAllowed] = React.useState(false);
   const [apexAccessReady, setApexAccessReady] = React.useState(false);
+  // Apex 101 quiz gate: force the quiz the first time a WW user switches into
+  // Apex (preview path), then never again. apexPreview = arrived via long-press.
+  const [apexPreview, setApexPreview] = React.useState(false);
+  const [apexQuizDone, setApexQuizDoneState] = React.useState(true);
+  const [apexQuizReady, setApexQuizReady] = React.useState(false);
 
   // Hydrate walk-water mode flag on mount and listen for changes from admin panel
   useEffect(() => {
@@ -90,6 +95,9 @@ function RootNavigator() {
       setGuestApexSetupComplete(false);
 
       if (!enabled) {
+        // Switching into Apex: re-gate the quiz so we show the splash (not a
+        // flash of the dashboard) until the bootstrap effect reloads the flags.
+        setApexQuizReady(false);
         setApexAccessAllowed(true);
         setApexAccessReady(true);
       } else {
@@ -200,6 +208,7 @@ function RootNavigator() {
         if (mounted) {
           setProfileReady(false);
           setProfileBootstrapped(true);
+          setApexQuizReady(true);
         }
         return;
       }
@@ -211,12 +220,23 @@ function RootNavigator() {
         hydratedProfile = await hydrateProfileFromSupabase(userId).catch(() => null);
       }
 
+      // Apex 101 quiz gate: only force the quiz for WW users who switched in via
+      // the long-press preview, and only until they complete it once.
+      const [preview, quizDone] = await Promise.all([
+        isApexAccessPreviewEnabled().catch(() => false),
+        isApexQuizDone(userId).catch(() => false),
+      ]);
+
       if (!mounted) return;
       setProfileReady(!!hydratedProfile);
+      setApexPreview(preview);
+      setApexQuizDoneState(quizDone);
+      setApexQuizReady(true);
       setProfileBootstrapped(true);
     };
 
     setProfileBootstrapped(false);
+    setApexQuizReady(false);
     bootstrapProfile();
 
     return () => {
@@ -250,7 +270,7 @@ function RootNavigator() {
   //   maybeShowPaywall(session.user.id).catch(() => null);
   // }, [session?.user.id]);
 
-  if (initializing || !apexAccessReady || !walkWaterModeReady || (session && apexAccessAllowed && !profileBootstrapped)) {
+  if (initializing || !apexAccessReady || !walkWaterModeReady || (session && apexAccessAllowed && (!profileBootstrapped || !apexQuizReady))) {
     return <BootSplash />;
   }
 
@@ -258,8 +278,22 @@ function RootNavigator() {
     return <ResetPasswordScreen key="password-reset" />;
   }
 
-  if (session && apexAccessAllowed && !profileReady) {
-    return <GoalSetupScreen onComplete={() => setProfileReady(true)} />;
+  // Show the Apex quiz when (a) a genuine new Apex user has no profile yet, OR
+  // (b) a WW user switched into Apex via the long-press preview and hasn't taken
+  // the Apex quiz yet. Completing it once marks it done so future WW↔Apex
+  // switches go straight to the dashboard.
+  if (session && apexAccessAllowed && (!profileReady || (apexPreview && !apexQuizDone))) {
+    return (
+      <GoalSetupScreen
+        onComplete={() => {
+          setProfileReady(true);
+          if (apexPreview) {
+            setApexQuizDoneState(true);
+            markApexQuizDone(userId).catch(() => null);
+          }
+        }}
+      />
+    );
   }
 
   if (session) {

@@ -40,6 +40,31 @@ export async function setApexAccessPreviewEnabled(enabled: boolean): Promise<voi
   await AsyncStorage.removeItem(APEX_ACCESS_PREVIEW_KEY);
 }
 
+// ── Apex 101 quiz gate ──────────────────────────────────────────────────────
+// Tracks (per user) whether someone has completed the Apex 101 quiz the first
+// time they switch over from the Walk & Water app. After it's done once, future
+// switches between WW and Apex skip the quiz. Keyed by userId so a different
+// account on the same device still takes it.
+const APEX_QUIZ_DONE_KEY = 'apex.quiz.done';
+
+export async function isApexQuizDone(userId: string | null): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    return (await AsyncStorage.getItem(`${APEX_QUIZ_DONE_KEY}.${userId}`)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export async function markApexQuizDone(userId: string | null): Promise<void> {
+  if (!userId) return;
+  try {
+    await AsyncStorage.setItem(`${APEX_QUIZ_DONE_KEY}.${userId}`, '1');
+  } catch {
+    // non-critical
+  }
+}
+
 function buildFallbackProfile(email?: string | null): UserProfile {
   const emailName = email?.split('@')[0]?.trim() ?? 'athlete';
   const displayName = emailName
