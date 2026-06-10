@@ -9,7 +9,7 @@ const easProjectId =
 const config: ExpoConfig = {
   name: 'APEX',
   slug: 'apex',
-  version: '1.0.6',
+  version: '1.0.7',
   orientation: 'default',
   icon: './assets/icon.png',
   scheme: 'apex',
@@ -66,6 +66,13 @@ const config: ExpoConfig = {
     package: bundleIdentifier,
     // Health Connect requires Android 8+ (API 26)
     minSdkVersion: 26,
+    permissions: [
+      'ACCESS_COARSE_LOCATION',
+      'ACCESS_FINE_LOCATION',
+      'ACCESS_BACKGROUND_LOCATION',
+      'FOREGROUND_SERVICE',
+      'FOREGROUND_SERVICE_LOCATION',
+    ],
     config: {
       googleMaps: {
         apiKey: process.env.GOOGLE_MAPS_API_KEY ?? '',
@@ -121,6 +128,26 @@ const config: ExpoConfig = {
     ],
     'expo-updates',
     [
+      '@livekit/react-native-expo-plugin',
+      {
+        android: {
+          audioType: 'communication',
+        },
+        ios: {
+          enableMultitaskingCameraAccess: false,
+        },
+      },
+    ],
+    [
+      '@config-plugins/react-native-webrtc',
+      {
+        cameraPermission:
+          'APEX uses your camera to scan food, review workout form, and support live coaching.',
+        microphonePermission:
+          'APEX uses your microphone for the AI Voice Coach to guide you through workouts hands-free.',
+      },
+    ],
+    [
       '@stripe/stripe-react-native',
       {
         merchantIdentifier: process.env.EXPO_PUBLIC_STRIPE_MERCHANT_IDENTIFIER || undefined,
@@ -134,6 +161,7 @@ const config: ExpoConfig = {
     // Explicitly links @livekit/react-native — Expo autolinking skips it
     // because it has no expo-module.config.json (uses RN community autolinking).
     './plugins/withLiveKitPod',
+    './plugins/withLiveKitAndroidSetup',
     // Android Health Connect — reads daily steps on Android 8+ (API 26+).
     // On Android 9-13 users need Health Connect installed from the Play Store;
     // on Android 14+ it is built into the OS.
