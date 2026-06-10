@@ -108,7 +108,11 @@ function formatCountdown(ms: number): string {
 
 // ─── MARK_COMPLETE_DELAY ──────────────────────────────────────────────────────
 
-const COMPLETE_DELAY_MS = 20 * 60 * 1000; // 20 minutes
+const COMPLETE_DELAY_MS = 20 * 60 * 1000; // 20 minutes (replay watch-progress display only)
+
+// "I Completed the Workout" + the upgrade banner unlock this long AFTER the finale
+// start time (4:00pm AZ finale → 4:20pm AZ). No replay watch-time is required.
+const COMPLETE_OFFSET_MS = 20 * 60 * 1000; // 20 minutes after finale start
 
 // ─── VideoWithProcessingFallback ─────────────────────────────────────────────
 
@@ -163,7 +167,7 @@ export default function WalkWaterFinaleScreen() {
   const [eventTime, setEventTime] = useState<Date | null>(null);
   const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
   const [checkingSession, setCheckingSession] = useState(false);
-  const [elapsed, setElapsed] = useState(0);           // ms on screen
+  const [nowMs, setNowMs] = useState(Date.now());      // ticks every second to drive the clock-based unlock
   const [alreadyDone, setAlreadyDone] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [planStepGoal, setPlanStepGoal] = useState(8000);
@@ -181,8 +185,8 @@ export default function WalkWaterFinaleScreen() {
   const lastPlaybackPositionRef = useRef<number | null>(null);
   const lastPlaybackTickRef = useRef<number | null>(null);
 
-  const elapsedRef = useRef(0);
-  const entryTime = useRef(Date.now());
+  // Writes the groupWorkoutDone flag exactly once when the finale unlock time passes.
+  const flagPersistedRef = useRef(false);
   const displayName = (session?.user?.user_metadata?.display_name as string | undefined) ?? 'You';
   const firstName = displayName.split(' ')[0];
   const { steps: healthSteps } = useHealth();
@@ -224,7 +228,7 @@ export default function WalkWaterFinaleScreen() {
       .finally(() => setEvergreenReady(true));
   }, []);
 
-  // Clock tick — updates countdown + phase, and elapsed timer
+  // Clock tick — updates countdown + phase, and the per-second clock for the unlock
   useEffect(() => {
     const tick = setInterval(() => {
       if (eventTime) {
@@ -234,8 +238,7 @@ export default function WalkWaterFinaleScreen() {
           setCountdown(formatCountdown(eventTime.getTime() - Date.now()));
         }
       }
-      elapsedRef.current = Date.now() - entryTime.current;
-      setElapsed(elapsedRef.current);
+      setNowMs(Date.now());
     }, 1000);
     return () => clearInterval(tick);
   }, [eventTime]);
@@ -280,23 +283,24 @@ export default function WalkWaterFinaleScreen() {
     }
   }, [activePhase, liveSessionId, navigation, planChallengeDays]);
 
-  // Auto-unlock after 20 min — no tap required
+  // At finale start + 20 min (4:20pm AZ): persist the groupWorkoutDone flag once so
+  // the upgrade banner appears on home — while keeping the "I Completed the Workout"
+  // button tappable here (the tap navigates straight to the reward).
   useEffect(() => {
-    if (!alreadyDone && elapsed >= COMPLETE_DELAY_MS) {
-      setGroupWorkoutDone()
-        .then(() => {
-          setAlreadyDone(true);
-          cancelWorkoutUnlockNotification();
-        })
-        .catch(() => null);
+    const unlocked = eventTime != null && nowMs >= eventTime.getTime() + COMPLETE_OFFSET_MS;
+    if (unlocked && !flagPersistedRef.current) {
+      flagPersistedRef.current = true;
+      setGroupWorkoutDone().catch(() => null);
+      cancelWorkoutUnlockNotification();
     }
-  }, [elapsed, alreadyDone]);
+  }, [nowMs, eventTime]);
 
   const handleMarkComplete = useCallback(async () => {
     if (completing) return;
     setCompleting(true);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await setGroupWorkoutDone();
+    cancelWorkoutUnlockNotification();
     setAlreadyDone(true);
     // Navigate back to home so the upgrade banner appears
     navigation.navigate('WalkWaterTabs');
@@ -345,7 +349,8 @@ export default function WalkWaterFinaleScreen() {
     }
   }, [recordingUrl, openReplayModal]);
 
-  const canComplete = alreadyDone || (activePhase === 'post' ? recordingWatchedMs >= COMPLETE_DELAY_MS : elapsed >= COMPLETE_DELAY_MS);
+  const finaleUnlocked = eventTime != null && nowMs >= eventTime.getTime() + COMPLETE_OFFSET_MS;
+  const canComplete = alreadyDone || finaleUnlocked;
 
   const [leaderboard, setLeaderboard] = useState<Array<{ name: string; steps: number; water: number; streak: number }>>([]);
 
@@ -467,9 +472,7 @@ export default function WalkWaterFinaleScreen() {
               <Text style={styles.recordingBtnText}>{loadingRecording ? 'Loading recording…' : '▶  Watch Recording'}</Text>
             </Pressable>
             <Text style={styles.eventNote}>
-              {recordingWatchedMs > 0
-                ? `${formatCountdown(COMPLETE_DELAY_MS - recordingWatchedMs)} left before “I Completed the Workout” unlocks.`
-                : 'Watch 20 minutes of the replay to unlock the completion button.'}
+              Train along with the replay, then tap “I Completed the Workout” below to claim your reward.
             </Text>
           </>
         )}
@@ -534,8 +537,10 @@ export default function WalkWaterFinaleScreen() {
       <View style={styles.completeBlock}>
         {!alreadyDone && !canComplete && (
           <Text style={styles.completeHint}>
-            Complete the workout to unlock your reward.{'\n'}
-            {activePhase === 'post' ? 'Button unlocks after 20 minutes of replay watch time.' : 'Button available after 20 minutes.'}
+            Your reward unlocks during the finale.{'\n'}
+            {eventTime
+              ? `Available at ${new Date(eventTime.getTime() + COMPLETE_OFFSET_MS).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`
+              : 'Available shortly after the finale starts.'}
           </Text>
         )}
         {!alreadyDone && canComplete && (
@@ -622,7 +627,7 @@ export default function WalkWaterFinaleScreen() {
                 {formatCountdown(recordingWatchedMs)} / {formatCountdown(COMPLETE_DELAY_MS)}
               </Text>
               <Text style={styles.recordingProgressSub}>
-                Once you watch 20 minutes, the completion button on this screen unlocks.
+                Train along with Coach Josh. Your reward unlocks during the finale — no minimum watch time.
               </Text>
               {recordingDurationMs > 0 ? (
                 <Text style={styles.recordingMetaText}>
