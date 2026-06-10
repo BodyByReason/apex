@@ -168,6 +168,7 @@ import { getCoachPersonaPrefix, getSelectedCoachVoice, type CoachVoiceOption } f
 import { scheduleAIInsightNotifications } from '@/lib/notifications';
 import { syncProfileToSupabase } from '@/lib/profileSync';
 import { apexColors as C } from '@/theme/colors';
+import ApexTutorialOverlay from '@/components/ApexTutorialOverlay';
 import { useTheme } from '@/contexts/ThemeContext';
 import FoodScanModal, { type ScannedFood } from '@/components/FoodScanModal';
 import ViewShot from 'react-native-view-shot';
@@ -3216,6 +3217,7 @@ ${JSON.stringify(payload, null, 0)}`;
         </ViewShot>
       </View>
 
+      <ApexTutorialOverlay accent={accent} />
     </View>
   );
 }

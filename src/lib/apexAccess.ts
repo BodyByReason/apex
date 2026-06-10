@@ -65,6 +65,29 @@ export async function markApexQuizDone(userId: string | null): Promise<void> {
   }
 }
 
+// ── Apex 101 home tutorial gate ─────────────────────────────────────────────
+// One-time interactive walkthrough of the home screen tabs, shown the first time
+// a user lands in the Apex 101 app. Keyed per user, same as the quiz gate.
+const APEX_TUTORIAL_DONE_KEY = 'apex.tutorial.done';
+
+export async function isApexTutorialDone(userId: string | null): Promise<boolean> {
+  if (!userId) return true; // no user → don't show
+  try {
+    return (await AsyncStorage.getItem(`${APEX_TUTORIAL_DONE_KEY}.${userId}`)) === '1';
+  } catch {
+    return true;
+  }
+}
+
+export async function markApexTutorialDone(userId: string | null): Promise<void> {
+  if (!userId) return;
+  try {
+    await AsyncStorage.setItem(`${APEX_TUTORIAL_DONE_KEY}.${userId}`, '1');
+  } catch {
+    // non-critical
+  }
+}
+
 function buildFallbackProfile(email?: string | null): UserProfile {
   const emailName = email?.split('@')[0]?.trim() ?? 'athlete';
   const displayName = emailName
