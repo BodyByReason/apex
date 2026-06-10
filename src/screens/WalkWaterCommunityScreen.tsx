@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -134,15 +135,22 @@ export default function WalkWaterCommunityScreen() {
     });
 
     return () => { cancelled = true; };
-  }, [mySteps]));
+  }, [displayName, mySteps, myUserId]));
 
   // Boards arrive pre-sorted by composite score from wwLeaderboard.ts
   const activeBoard = leaderboardMode === '3day' ? weekBoard : globalBoard;
+  const requiresAccount = !myUserId;
 
   // ── Chat ─────────────────────────────────────────────────────────────────────
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [chatLoading, setChatLoading] = useState(true);
   const [input, setInput] = useState('');
+
+  // ── Likes (double-tap to ❤️) ───────────────────────────────────────────────
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [myLikes, setMyLikes] = useState<Set<string>>(new Set());
+  // Tracks the last tap to detect a double-tap without an extra dependency.
+  const lastTapRef = useRef<{ id: string; t: number } | null>(null);
 
   useEffect(() => {
     // Initial load
@@ -177,16 +185,138 @@ export default function WalkWaterCommunityScreen() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Load existing likes + subscribe to live like changes.
+  useEffect(() => {
+    supabase
+      .from('ww_chat_message_reactions')
+      .select('message_id, user_id')
+      .then(({ data }) => {
+        if (!data) return;
+        const counts: Record<string, number> = {};
+        const mine = new Set<string>();
+        for (const r of data as { message_id: string; user_id: string }[]) {
+          counts[r.message_id] = (counts[r.message_id] ?? 0) + 1;
+          if (r.user_id === myUserId) mine.add(r.message_id);
+        }
+        setLikeCounts(counts);
+        setMyLikes(mine);
+      })
+      .catch(() => null);
+
+    const channel = supabase
+      .channel('ww_chat_reactions_feed')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ww_chat_message_reactions' },
+        (payload) => {
+          const r = payload.new as { message_id: string; user_id: string };
+          // Our own likes are already applied optimistically — skip the echo.
+          if (r.user_id === myUserId) return;
+          setLikeCounts((prev) => ({ ...prev, [r.message_id]: (prev[r.message_id] ?? 0) + 1 }));
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'ww_chat_message_reactions' },
+        (payload) => {
+          const r = payload.old as { message_id?: string; user_id?: string };
+          if (!r?.message_id || r.user_id === myUserId) return;
+          setLikeCounts((prev) => ({
+            ...prev,
+            [r.message_id!]: Math.max(0, (prev[r.message_id!] ?? 0) - 1),
+          }));
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [myUserId]);
+
+  const toggleLike = useCallback(async (messageId: string) => {
+    const uid = myUserId ?? (await supabase.auth.getSession()).data.session?.user?.id;
+    if (!uid) {
+      Alert.alert('Account required', 'Log in to like messages in the group chat.');
+      return;
+    }
+    const liked = myLikes.has(messageId);
+
+    // Optimistic update.
+    setMyLikes((prev) => {
+      const next = new Set(prev);
+      if (liked) next.delete(messageId); else next.add(messageId);
+      return next;
+    });
+    setLikeCounts((prev) => ({
+      ...prev,
+      [messageId]: Math.max(0, (prev[messageId] ?? 0) + (liked ? -1 : 1)),
+    }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+
+    const revert = () => {
+      setMyLikes((prev) => {
+        const next = new Set(prev);
+        if (liked) next.add(messageId); else next.delete(messageId);
+        return next;
+      });
+      setLikeCounts((prev) => ({
+        ...prev,
+        [messageId]: Math.max(0, (prev[messageId] ?? 0) + (liked ? 1 : -1)),
+      }));
+    };
+
+    if (liked) {
+      const { error } = await supabase
+        .from('ww_chat_message_reactions')
+        .delete()
+        .eq('message_id', messageId)
+        .eq('user_id', uid);
+      if (error) revert();
+    } else {
+      const { error } = await supabase
+        .from('ww_chat_message_reactions')
+        .insert({ message_id: messageId, user_id: uid });
+      // A duplicate (23505) means it's already liked — keep the optimistic state.
+      if (error && error.code !== '23505') revert();
+    }
+  }, [myLikes, myUserId]);
+
+  const handleBubbleTap = useCallback((messageId: string) => {
+    const now = Date.now();
+    const last = lastTapRef.current;
+    if (last && last.id === messageId && now - last.t < 300) {
+      lastTapRef.current = null;
+      toggleLike(messageId);
+    } else {
+      lastTapRef.current = { id: messageId, t: now };
+    }
+  }, [toggleLike]);
+
   const send = useCallback(async () => {
     const text = input.trim();
-    if (!text || !myUserId) return;
+    if (!text) return;
+    const activeUserId = myUserId ?? (await supabase.auth.getSession()).data.session?.user?.id;
+    if (!activeUserId) {
+      Alert.alert(
+        'Account required',
+        'Create an account or log in to post in the group chat and appear on the leaderboard.',
+      );
+      return;
+    }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setInput('');
-    await supabase.from('ww_chat_messages').insert({
-      user_id:      myUserId,
+    const { error, data: inserted } = await supabase.from('ww_chat_messages').insert({
+      user_id:      activeUserId,
       display_name: displayName,
       body:         text,
-    });
+    }).select().single();
+    if (error) {
+      Alert.alert('Could not post', error.message);
+      return;
+    }
+    setInput('');
+    // Fan out push notifications to all other users (best-effort, non-blocking).
+    supabase.functions.invoke('ww-chat-notify', {
+      body: { type: 'INSERT', table: 'ww_chat_messages', record: inserted },
+    }).catch(() => null);
   }, [input, myUserId, displayName]);
 
   // ── Misc ─────────────────────────────────────────────────────────────────────
@@ -269,7 +399,13 @@ export default function WalkWaterCommunityScreen() {
             <Text style={styles.sectionLabel}>
               {leaderboardMode === '3day' ? '3-DAY CHALLENGE RANKINGS' : 'ALL-TIME GLOBAL RANKINGS'}
             </Text>
-            {leaderboardLoading ? (
+            {requiresAccount ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateEmoji}>🔐</Text>
+                <Text style={styles.emptyStateText}>Log in to view the leaderboard.</Text>
+                <Text style={styles.emptyStateSub}>Leaderboard rankings are available after your account is active.</Text>
+              </View>
+            ) : leaderboardLoading ? (
               <ActivityIndicator color={WW.blue} style={{ marginTop: 32 }} />
             ) : activeBoard.length === 0 ? (
               <View style={styles.emptyState}>
@@ -341,19 +477,29 @@ export default function WalkWaterCommunityScreen() {
             ) : (
               msgs.map((m) => {
                 const isMe = m.user_id === myUserId;
+                const likes = likeCounts[m.id] ?? 0;
+                const liked = myLikes.has(m.id);
                 return (
                   <View key={m.id} style={[styles.chatBubble, isMe && styles.chatBubbleMe]}>
                     {!isMe && (
                       <Text style={styles.chatAuthor}>{m.display_name} · {fmtTime(m.created_at)}</Text>
                     )}
-                    <View style={[styles.chatInner, isMe && styles.chatInnerMe]}>
+                    <Pressable
+                      onPress={() => handleBubbleTap(m.id)}
+                      style={[styles.chatInner, isMe && styles.chatInnerMe]}
+                    >
                       <Text style={[styles.chatText, isMe && styles.chatTextMe]}>{m.body}</Text>
-                    </View>
-                    {isMe && (
-                      <Text style={[styles.chatAuthor, { textAlign: 'right' }]}>
-                        You · {fmtTime(m.created_at)}
+                    </Pressable>
+                    <View style={[styles.chatMetaRow, isMe && styles.chatMetaRowMe]}>
+                      {likes > 0 && (
+                        <Pressable onPress={() => toggleLike(m.id)} hitSlop={6} style={styles.likePill}>
+                          <Text style={styles.likePillText}>{liked ? '❤️' : '🤍'} {likes}</Text>
+                        </Pressable>
+                      )}
+                      <Text style={styles.chatAuthor}>
+                        {isMe ? `You · ${fmtTime(m.created_at)}` : ''}
                       </Text>
-                    )}
+                    </View>
                   </View>
                 );
               })
@@ -492,6 +638,19 @@ const styles = StyleSheet.create({
   },
   chatText:   { fontSize: 14, color: WW.text, lineHeight: 20 },
   chatTextMe: { color: '#000', fontWeight: '500' },
+  chatMetaRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4, marginTop: 2 },
+  chatMetaRowMe: { justifyContent: 'flex-end' },
+  likePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: WW.blueSoft,
+    borderWidth: 1,
+    borderColor: WW.blueBorder,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  likePillText: { fontSize: 11, color: WW.text, fontWeight: '600' },
 
   // Chat input
   chatInputRow: {
