@@ -148,7 +148,7 @@ function getCardioOptions(planId: string) {
 }
 
 const EXERCISE_LIBRARY = [
-  { icon: '💪', name: 'Bench Press', muscles: 'Chest · Triceps', cat: 'Chest', defaultSets: '4 x 8', youtubeId: 'rT7DgCr-3pg' },
+  { icon: '💪', name: 'Bench Press', muscles: 'Chest · Triceps', cat: 'Chest', defaultSets: '4 x 8', youtubeId: 'KaCcBqhiXtc' },
   { icon: '💪', name: 'Incline DB Press', muscles: 'Upper Chest · Shoulders', cat: 'Chest', defaultSets: '3 x 10', youtubeId: '8iPEnn-ltC8' },
   { icon: '💪', name: 'Decline Bench Press', muscles: 'Lower Chest', cat: 'Chest', defaultSets: '3 x 10', youtubeId: '' },
   { icon: '💪', name: 'Cable Fly', muscles: 'Chest · Pecs', cat: 'Chest', defaultSets: '3 x 12', youtubeId: '' },
@@ -174,7 +174,7 @@ const EXERCISE_LIBRARY = [
   { icon: '🔥', name: 'Plank Hold', muscles: 'Core · Stability', cat: 'Core', defaultSets: '3 x 60s', youtubeId: '' },
   { icon: '🔥', name: 'Crunches', muscles: 'Abs', cat: 'Core', defaultSets: '3 x 20', youtubeId: '' },
   { icon: '🔥', name: 'Sit Ups', muscles: 'Abs · Core', cat: 'Core', defaultSets: '3 x 15', youtubeId: '' },
-  { icon: '🔥', name: 'Russian Twists', muscles: 'Obliques · Core', cat: 'Core', defaultSets: '3 x 20', youtubeId: '9YnvLdAH6-E' },
+  { icon: '🔥', name: 'Russian Twists', muscles: 'Obliques · Core', cat: 'Core', defaultSets: '3 x 20', youtubeId: 'aRUMRbl7KS4' },
 ] as const;
 
 function findExerciseSwapSuggestion(request: string) {
@@ -4200,7 +4200,7 @@ COACHING BEHAVIOR — follow these rules at all times:
               const q = libQuery.toLowerCase().trim();
               const allEx = [
                 // Chest
-                { icon: '💪', name: 'Bench Press', muscles: 'Chest · Triceps', cat: 'Chest', defaultSets: '4 x 8', youtubeId: 'rT7DgCr-3pg' },
+                { icon: '💪', name: 'Bench Press', muscles: 'Chest · Triceps', cat: 'Chest', defaultSets: '4 x 8', youtubeId: 'KaCcBqhiXtc' },
                 { icon: '💪', name: 'Incline DB Press', muscles: 'Upper Chest · Shoulders', cat: 'Chest', defaultSets: '3 x 10', youtubeId: '8iPEnn-ltC8' },
                 { icon: '💪', name: 'Decline Bench Press', muscles: 'Lower Chest', cat: 'Chest', defaultSets: '3 x 10', youtubeId: '' },
                 { icon: '💪', name: 'Cable Fly', muscles: 'Chest · Pecs', cat: 'Chest', defaultSets: '3 x 12', youtubeId: '' },

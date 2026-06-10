@@ -145,7 +145,7 @@ const POWER_BUILD_SCHEDULE: WorkoutProgramDay[] = [
     meta: '5 exercises · ~54 min · Chest · Shoulders · Triceps',
     badge: 'lift',
     exercises: [
-      { num: 1, name: 'Bench Press', sets: '4 x 6 @ 80% · Rest 3 min', youtubeId: 'rT7DgCr-3pg' },
+      { num: 1, name: 'Bench Press', sets: '4 x 6 @ 80% · Rest 3 min', youtubeId: 'KaCcBqhiXtc' },
       { num: 2, name: 'Overhead Press', sets: '3 x 8 · Rest 2 min', youtubeId: 'QAQ64hK4d00' },
       { num: 3, name: 'Incline DB Press', sets: '3 x 10 · Rest 90s', youtubeId: '8iPEnn-ltC8' },
       { num: 4, name: 'Lateral Raises', sets: '4 x 15 · Controlled tempo', youtubeId: 'kDqklk1ZESo' },
@@ -173,7 +173,7 @@ const POWER_BUILD_SCHEDULE: WorkoutProgramDay[] = [
     badge: 'rest',
     exercises: [
       { num: 1, name: 'Light Walk', sets: '20–30 min · Zone 2 pace', youtubeId: '' },
-      { num: 2, name: 'Hip Flexor Stretch', sets: '3 x 60s each side', youtubeId: 'kDTNLFYGsIU' },
+      { num: 2, name: 'Hip Flexor Stretch', sets: '3 x 60s each side', youtubeId: 'ktgtEWGhFd8' },
       { num: 3, name: 'Foam Rolling', sets: '10 min · focus on sore areas', youtubeId: 'aBDkiULJAMQ' },
     ],
   },
@@ -243,8 +243,8 @@ const HIIT_BURN_SCHEDULE: WorkoutProgramDay[] = [
   ]},
   { day: 'WED', name: 'Mobility Reset', meta: '3 exercises · 15 min · Recovery', badge: 'rest', exercises: [
     { num: 1, name: 'Walk', sets: '15 min easy pace', youtubeId: '' },
-    { num: 2, name: 'Hip Openers', sets: '3 x 45s', youtubeId: 'kDTNLFYGsIU' },
-    { num: 3, name: 'Thoracic Rotation', sets: '3 x 10 each', youtubeId: 'mCPDkMOlqYA' },
+    { num: 2, name: 'Hip Openers', sets: '3 x 45s', youtubeId: 'ktgtEWGhFd8' },
+    { num: 3, name: 'Thoracic Rotation', sets: '3 x 10 each', youtubeId: 'C8wzQhlXPx8' },
   ]},
   { day: 'THU', name: 'Lower Body Burner', meta: '4 exercises · 22 min · Legs + glutes', badge: 'lift', exercises: [
     { num: 1, name: 'Goblet Squat', sets: '4 x 12', youtubeId: 'MxsFDhcyFyE' },
@@ -261,7 +261,7 @@ const HIIT_BURN_SCHEDULE: WorkoutProgramDay[] = [
   { day: 'SAT', name: 'Core Finisher', meta: '4 exercises · 16 min · Core', badge: 'cardio', exercises: [
     { num: 1, name: 'Crunches', sets: '3 x 25', youtubeId: 'Xyd_fa5zoEU' },
     { num: 2, name: 'Plank Hold', sets: '3 x 60s', youtubeId: 'ASdvN_XEl_c' },
-    { num: 3, name: 'Russian Twists', sets: '3 x 20', youtubeId: '9YnvLdAH6-E' },
+    { num: 3, name: 'Russian Twists', sets: '3 x 20', youtubeId: 'aRUMRbl7KS4' },
     { num: 4, name: 'Leg Raises', sets: '3 x 15', youtubeId: 'JB2oyawG9KI' },
   ]},
   { day: 'SUN', name: 'Rest Day', meta: 'Walk · recover · reset', badge: 'rest', exercises: [
@@ -272,7 +272,7 @@ const HIIT_BURN_SCHEDULE: WorkoutProgramDay[] = [
 
 const BODY_RECOMP_SCHEDULE: WorkoutProgramDay[] = [
   { day: 'MON', name: 'Upper Strength', meta: '5 exercises · 45 min · Recomp', badge: 'lift', exercises: [
-    { num: 1, name: 'Bench Press', sets: '4 x 8', youtubeId: 'rT7DgCr-3pg' },
+    { num: 1, name: 'Bench Press', sets: '4 x 8', youtubeId: 'KaCcBqhiXtc' },
     { num: 2, name: 'Pull Ups', sets: '4 x 8', youtubeId: 'eGo4IYlbE5g' },
     { num: 3, name: 'DB Shoulder Press', sets: '3 x 10', youtubeId: 'qEwKCR5JCog' },
     { num: 4, name: 'Cable Row', sets: '3 x 12', youtubeId: 'GZbfZ033f74' },
@@ -324,7 +324,7 @@ const ELITE_PERFORMANCE_SCHEDULE: WorkoutProgramDay[] = [
     { num: 6, name: 'Cool Down', sets: '8 min', youtubeId: 'L_xrDAtykMI' },
   ]},
   { day: 'TUE', name: 'Upper Strength', meta: '6 exercises · 58 min · Heavy push/pull', badge: 'lift', exercises: [
-    { num: 1, name: 'Bench Press', sets: '5 x 5', youtubeId: 'rT7DgCr-3pg' },
+    { num: 1, name: 'Bench Press', sets: '5 x 5', youtubeId: 'KaCcBqhiXtc' },
     { num: 2, name: 'Weighted Pull Up', sets: '5 x 5', youtubeId: 'eGo4IYlbE5g' },
     { num: 3, name: 'Barbell Row', sets: '4 x 8', youtubeId: 'kBWAon7ItDw' },
     { num: 4, name: 'Overhead Press', sets: '4 x 6', youtubeId: 'QAQ64hK4d00' },
@@ -556,13 +556,13 @@ const EXERCISE_YOUTUBE_FALLBACK: Record<string, string> = {
   'barbell squat': 'ultWZbUMPL8',
   'front squat': 'uYumuL_G_V0',
   'goblet squat': 'MxsFDhcyFyE',
-  'bench press': 'rT7DgCr-3pg',
-  'barbell bench': 'rT7DgCr-3pg',
-  'barbell bench press': 'rT7DgCr-3pg',
+  'bench press': 'KaCcBqhiXtc',
+  'barbell bench': 'KaCcBqhiXtc',
+  'barbell bench press': 'KaCcBqhiXtc',
   'dumbbell bench': 'VmB1G1K7v94',
   'db bench': 'VmB1G1K7v94',
-  'flat barbell bench press': 'rT7DgCr-3pg',
-  'flat bench press': 'rT7DgCr-3pg',
+  'flat barbell bench press': 'KaCcBqhiXtc',
+  'flat bench press': 'KaCcBqhiXtc',
   'incline press': '8iPEnn-ltC8',
   'incline bench': '8iPEnn-ltC8',
   'incline db press': '8iPEnn-ltC8',
@@ -649,8 +649,8 @@ const EXERCISE_YOUTUBE_FALLBACK: Record<string, string> = {
   'sit ups': 'jDwoBqPH0jk',
   'sit-ups': 'jDwoBqPH0jk',
   'situps': 'jDwoBqPH0jk',
-  'russian twists': '9YnvLdAH6-E',
-  'russian twist': '9YnvLdAH6-E',
+  'russian twists': 'aRUMRbl7KS4',
+  'russian twist': 'aRUMRbl7KS4',
   'leg raises': 'JB2oyawG9KI',
   'leg raise': 'JB2oyawG9KI',
   'dead bug': 'g_BYB0R-4Ws',
@@ -664,7 +664,7 @@ const EXERCISE_YOUTUBE_FALLBACK: Record<string, string> = {
   'kb swing': 'cKx8xE8jhjg',
   'foam rolling': 'aBDkiULJAMQ',
   'foam roll': 'aBDkiULJAMQ',
-  'hip flexor stretch': 'kDTNLFYGsIU',
+  'hip flexor stretch': 'ktgtEWGhFd8',
   'stretch': 'L_xrDAtykMI',
   'full body stretch': 'L_xrDAtykMI',
   'mobility flow': 'L_xrDAtykMI',
