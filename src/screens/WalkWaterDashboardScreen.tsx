@@ -442,7 +442,11 @@ export default function WalkWaterDashboardScreen() {
       )}
 
       {/* ── Challenge complete banner — offer still active ── */}
-      {activeChallengeComplete && activeGroupWorkoutDone && !isUpgraded && !isOfferExpired && (
+      {/* Gated on the persisted groupWorkoutDone flag (not the Thursday-only      */}
+      {/* challengeComplete clock) so the reward banner stays up for the full 48h  */}
+      {/* offer window instead of vanishing at midnight on finale day. The flag    */}
+      {/* only flips after the Day-3 finale unlock, so this can't fire early.      */}
+      {activeGroupWorkoutDone && !isUpgraded && !isOfferExpired && (
         <Pressable
           style={styles.completeBanner}
           onPress={() => (navigation as any).navigate('ChallengeComplete')}
@@ -561,6 +565,13 @@ export default function WalkWaterDashboardScreen() {
         </View>
         <Text style={styles.coachMessage}>
           {(() => {
+            // Finished the group workout — congratulate and point at the reward
+            // banner above. Takes priority over the "join live" copy so a finisher
+            // is never told to tap a red banner that's already hidden (the live
+            // banner requires !groupWorkoutDone).
+            if (activeGroupWorkoutDone && !isUpgraded && !isOfferExpired) {
+              return `You crushed the group workout, ${firstName}. 🏆 Your challenge-finisher reward is unlocked — tap the banner above to claim it before the offer expires.`;
+            }
             if (activeCurrentDay >= 4) {
               const timeLeft = formatOfferCountdown(activeOfferMs);
               return `You completed the challenge — now it's time to keep the momentum. Your challenge-finisher price is only available for ${timeLeft}. Don't let it slip.`;
